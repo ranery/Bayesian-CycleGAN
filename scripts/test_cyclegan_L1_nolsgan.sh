@@ -1,0 +1,1 @@
+python test.py --dataroot ~/data/cityscapesHD --name cityscapes_L1_nolsgan --phase test --loadSize 512 --netG_A global --netG_B global --ngf 32 --niter_fix_global 0 --n_blocks_global 8 --n_downsample_global 2 --which_epoch 10 --how_many 500
