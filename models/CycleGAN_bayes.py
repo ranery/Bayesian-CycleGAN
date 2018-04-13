@@ -388,6 +388,8 @@ class CycleGAN():
     def save_model(self, label):
         self.save_network(self.netG_A, 'G_A', label)
         self.save_network(self.netG_B, 'G_B', label)
+        self.save_network(self.netE_A, 'E_A', label)
+        self.save_network(self.netE_B, 'E_B', label)
         self.save_network(self.netD_A, 'D_A', label)
         self.save_network(self.netD_B, 'D_B', label)
 
