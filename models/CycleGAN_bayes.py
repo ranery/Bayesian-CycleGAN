@@ -39,14 +39,14 @@ class CycleGAN():
         self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)
 
         # load network
-        netG_input_nc = opt.input_nc + 3
+        netG_input_nc = opt.input_nc + 1
         self.netG_A = networks.define_G(netG_input_nc, opt.output_nc, opt.ngf, opt.netG_A,
                                         opt.n_downsample_global, opt.n_blocks_global, opt.norm).type(self.Tensor)
         self.netG_B = networks.define_G(netG_input_nc, opt.output_nc, opt.ngf, opt.netG_B,
                                         opt.n_downsample_global, opt.n_blocks_global, opt.norm).type(self.Tensor)
 
-        self.netE_A = networks.define_G(opt.input_nc, opt.output_nc, 32, 'encoder', opt.n_downsample_global, opt.norm).type(self.Tensor)
-        self.netE_B = networks.define_G(opt.input_nc, opt.output_nc, 32, 'encoder', opt.n_downsample_global, opt.norm).type(self.Tensor)
+        self.netE_A = networks.define_G(opt.input_nc, 1, 32, 'encoder', opt.n_downsample_global, opt.norm).type(self.Tensor)
+        self.netE_B = networks.define_G(opt.input_nc, 1, 32, 'encoder', opt.n_downsample_global, opt.norm).type(self.Tensor)
 
         if self.isTrain:
             use_sigmoid = opt.no_lsgan
@@ -114,6 +114,7 @@ class CycleGAN():
             z_x = Variable(transform(z_x)).type(self.Tensor)
             z_x = torch.unsqueeze(z_x, 0)
             feat_map = self.netE_A.forward(z_x)
+            self.feat_map_zx = feat_map
             real_B_zx = []
             for i in range(0, self.opt.batchSize):
                 _real = torch.unsqueeze(self.real_B[i], 0)
@@ -123,12 +124,14 @@ class CycleGAN():
             self.real_B_zx.append(real_B_zx)
 
         os.chdir(self.path_B)
+        self.feat_map_zy = []
         for sample_y in mc_sample_y:
             z_y = Image.open(sample_y).convert('RGB')
             z_y = self.img_resize(z_y, self.opt.loadSize)
             z_y = Variable(transform(z_y)).type(self.Tensor)
             z_y = torch.unsqueeze(z_y, 0)
             feat_map = self.netE_B.forward(z_y)
+            self.feat_map_zy = feat_map
             real_A_zy = []
             for i in range(0, self.opt.batchSize):
                 _real = torch.unsqueeze(self.real_A[i], 0)
@@ -138,8 +141,8 @@ class CycleGAN():
             self.real_A_zy.append(real_A_zy)
 
         os.chdir(self.origin_path)
-        self.real_A_feat_map = self.netE_A(self.real_A)
-        self.real_B_feat_map = self.netE_B(self.real_B)
+        # self.real_A_feat_map = self.netE_A(self.real_A)
+        # self.real_B_feat_map = self.netE_B(self.real_B)
 
     def inference(self):
         real_A = Variable(self.input_A).type(self.Tensor)
@@ -148,44 +151,44 @@ class CycleGAN():
         # feature map
         os.chdir(self.path_A)
         mc_sample_x = random.sample(self.list_A, 1)
-        z_x = Image.open(mc_sample_x).convert('RGB')
+        z_x = Image.open(mc_sample_x[0]).convert('RGB')
         z_x = self.img_resize(z_x, self.opt.loadSize)
         z_x = Variable(transform(z_x)).type(self.Tensor)
         z_x = torch.unsqueeze(z_x, 0)
         feat_map_zx = self.netE_A.forward(z_x)
 
         os.chdir(self.path_B)
-        mc_sample_y = random.sample(self.list_A, 1)
-        z_y = Image.open(mc_sample_y).convert('RGB')
+        mc_sample_y = random.sample(self.list_B, 1)
+        z_y = Image.open(mc_sample_y[0]).convert('RGB')
         z_y = self.img_resize(z_y, self.opt.loadSize)
         z_y = Variable(transform(z_y)).type(self.Tensor)
         z_y = torch.unsqueeze(z_y, 0)
         feat_map_zy = self.netE_B.forward(z_y)
 
         os.chdir(self.origin_path)
-        real_A_feat_map = self.netE_A(real_A)
-        real_B_feat_map = self.netE_B(real_B)
+        # real_A_feat_map = self.netE_A(real_A)
+        # real_B_feat_map = self.netE_B(real_B)
 
         # combine input image with random feature map
         real_B_zx = []
         for i in range(0, self.opt.batchSize):
             _real = torch.cat((real_B[i:i+1], feat_map_zx), dim=1)
             real_B_zx.append(_real)
+        real_B_zx = torch.cat(real_B_zx)
         real_A_zy = []
         for i in range(0, self.opt.batchSize):
             _real = torch.cat((real_A[i:i+1], feat_map_zy), dim=1)
             real_A_zy.append(_real)
+        real_A_zy = torch.cat(real_A_zy)
 
         # inference
         fake_B = self.netG_A(real_A_zy)
-        _fake = torch.unsqueeze(fake_B, 0)
-        fake_B_next = torch.cat((_fake, real_A_feat_map), dim=1)
+        fake_B_next = torch.cat((fake_B, feat_map_zx), dim=1)
         self.rec_A = self.netG_B(fake_B_next).data
         self.fake_B = fake_B.data
 
         fake_A = self.netG_B(real_B_zx)
-        _fake = torch.unsqueeze(fake_A, 0)
-        fake_A_next = torch.cat((_fake, real_B_feat_map), dim=1)
+        fake_A_next = torch.cat((fake_A, feat_map_zy), dim=1)
         self.rec_B = self.netG_A(fake_A_next).data
         self.fake_A = fake_A.data
 
@@ -230,7 +233,7 @@ class CycleGAN():
         fake_B_next = []
         for i in range(0, self.opt.mc_y):
             _fake = fake_B[i*self.opt.batchSize:(i+1)*self.opt.batchSize]
-            _fake = torch.cat((_fake, self.real_A_feat_map), dim=1)
+            _fake = torch.cat((_fake, self.feat_map_zx), dim=1)
             fake_B_next.append(_fake)
         fake_B_next = torch.cat(fake_B_next)
 
@@ -245,7 +248,7 @@ class CycleGAN():
         fake_A_next = []
         for i in range(0, self.opt.mc_x):
             _fake = fake_A[i*self.opt.batchSize:(i+1)*self.opt.batchSize]
-            _fake = torch.cat((_fake, self.real_B_feat_map), dim=1)
+            _fake = torch.cat((_fake, self.feat_map_zy), dim=1)
             fake_A_next.append(_fake)
         fake_A_next = torch.cat(fake_A_next)
 
