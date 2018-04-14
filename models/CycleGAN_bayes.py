@@ -24,7 +24,7 @@ transform = transforms.Compose([
 
 class CycleGAN():
     def name(self):
-        return 'CycleGAN Model'
+        return 'Bayesian CycleGAN Model'
 
     def initialize(self, opt):
         self.opt = opt
