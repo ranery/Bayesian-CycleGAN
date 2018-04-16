@@ -25,10 +25,10 @@ class CycleGAN():
         if torch.cuda.is_available():
             print('cuda is available, we will use gpu!')
             self.Tensor = torch.cuda.FloatTensor
-            torch.cuda.manual_seed_all(10)
+            torch.cuda.manual_seed_all(100)
         else:
             self.Tensor = torch.FloatTensor
-            torch.manual_seed(10)
+            torch.manual_seed(100)
         self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)
 
         # load network

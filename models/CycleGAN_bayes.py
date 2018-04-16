@@ -32,10 +32,10 @@ class CycleGAN():
         if torch.cuda.is_available():
             print('cuda is available, we will use gpu!')
             self.Tensor = torch.cuda.FloatTensor
-            torch.cuda.manual_seed_all(10)
+            torch.cuda.manual_seed_all(100)
         else:
             self.Tensor = torch.FloatTensor
-            torch.manual_seed(10)
+            torch.manual_seed(100)
         self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)
 
         # load network
@@ -89,8 +89,12 @@ class CycleGAN():
         self.origin_path = os.getcwd()
         self.path_A = self.opt.dataroot + '/trainA'
         self.path_B = self.opt.dataroot + '/trainB'
+        self.path_A_test = self.opt.dataroot + '/testA'
+        self.path_B_test = self.opt.dataroot + '/testB'
         self.list_A = os.listdir(self.path_A)
         self.list_B = os.listdir(self.path_B)
+        self.list_A_test = os.listdir(self.path_A_test)
+        self.list_B_test = os.listdir(self.path_B_test)
 
     def set_input(self, input):
         AtoB = self.opt.which_direction == 'AtoB'
@@ -149,16 +153,16 @@ class CycleGAN():
         real_B = Variable(self.input_B).type(self.Tensor)
 
         # feature map
-        os.chdir(self.path_A)
-        mc_sample_x = random.sample(self.list_A, 1)
+        os.chdir(self.path_A_test)
+        mc_sample_x = random.sample(self.list_A_test, 1)
         z_x = Image.open(mc_sample_x[0]).convert('RGB')
         z_x = self.img_resize(z_x, self.opt.loadSize)
         z_x = Variable(transform(z_x)).type(self.Tensor)
         z_x = torch.unsqueeze(z_x, 0)
         feat_map_zx = self.netE_A.forward(z_x)
 
-        os.chdir(self.path_B)
-        mc_sample_y = random.sample(self.list_B, 1)
+        os.chdir(self.path_B_test)
+        mc_sample_y = random.sample(self.list_B_test, 1)
         z_y = Image.open(mc_sample_y[0]).convert('RGB')
         z_y = self.img_resize(z_y, self.opt.loadSize)
         z_y = Variable(transform(z_y)).type(self.Tensor)

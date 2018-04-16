@@ -52,13 +52,13 @@ def define_G(input_nc, output_nc, ngf, netG, n_downsample_global=3, n_blocks_glo
         netG = Encoder(input_nc, output_nc, ngf, n_downsample_global, norm_layer)
     else:
         raise NotImplementedError('generator [%s] is not found.' % netG)
-    netG.apply(weights_init_uniform)
+    netG.apply(weights_init_gaussian)
     return netG
 
 def define_D(input_nc, ndf, n_layers_D, norm='instance', use_sigmoid=False, num_D=1):
     norm_layer = get_norm_layer(norm_type=norm)
     netD = MultiscaleDiscriminator(input_nc, ndf, n_layers_D, norm_layer, use_sigmoid, num_D)
-    netD.apply(weights_init_uniform)
+    netD.apply(weights_init_gaussian)
     return netD
 
 # losses
