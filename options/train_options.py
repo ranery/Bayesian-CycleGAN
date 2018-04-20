@@ -31,5 +31,6 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument('--lr_policy', type=str, default='lambda', help='learning rate policy: lambda|step|plateau')
         self.parser.add_argument('--lr_decay_iters', type=int, default=50, help='multiply by a gamma every lr_decay_iters iterations')
         self.parser.add_argument('--debug', action='store_true', help='only do one epoch and displays at each iteration')
+        self.parser.add_argument('--need_match', action='store_true', help='use one paired data to assure the match for segmentation')
 
         self.isTrain = True

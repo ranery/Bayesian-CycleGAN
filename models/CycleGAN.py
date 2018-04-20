@@ -14,6 +14,7 @@ import util.util as util
 from util.image_pool import ImagePool
 from . import networks
 import sys
+from PIL import Image
 
 class CycleGAN():
     def name(self):
@@ -79,6 +80,15 @@ class CycleGAN():
     def forward(self):
         self.real_A = Variable(self.input_A).type(self.Tensor)
         self.real_B = Variable(self.input_B).type(self.Tensor)
+
+    def img_resize(self, img, target_width):
+        ow, oh = img.size
+        if (ow == target_width):
+            return img
+        else:
+            w = target_width
+            h = int(target_width * oh / ow)
+        return img.resize((w, h), Image.BICUBIC)
 
     def inference(self):
         real_A = Variable(self.input_A).type(self.Tensor)
