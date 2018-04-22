@@ -40,13 +40,14 @@ class CycleGAN():
 
         # load network
         netG_input_nc = opt.input_nc + 1
+        netG_output_nc = opt.output_nc + 1
         self.netG_A = networks.define_G(netG_input_nc, opt.output_nc, opt.ngf, opt.netG_A,
                                         opt.n_downsample_global, opt.n_blocks_global, opt.norm).type(self.Tensor)
-        self.netG_B = networks.define_G(netG_input_nc, opt.output_nc, opt.ngf, opt.netG_B,
+        self.netG_B = networks.define_G(netG_output_nc, opt.input_nc, opt.ngf, opt.netG_B,
                                         opt.n_downsample_global, opt.n_blocks_global, opt.norm).type(self.Tensor)
 
         self.netE_A = networks.define_G(opt.input_nc, 1, 32, 'encoder', opt.n_downsample_global, opt.norm).type(self.Tensor)
-        self.netE_B = networks.define_G(opt.input_nc, 1, 32, 'encoder', opt.n_downsample_global, opt.norm).type(self.Tensor)
+        self.netE_B = networks.define_G(opt.output_nc, 1, 32, 'encoder', opt.n_downsample_global, opt.norm).type(self.Tensor)
 
         if self.isTrain:
             use_sigmoid = opt.no_lsgan
@@ -111,7 +112,11 @@ class CycleGAN():
         for sample_x in mc_sample_x:
             z_x = Image.open(sample_x).convert('RGB')
             z_x = self.img_resize(z_x, self.opt.loadSize)
-            z_x = Variable(transform(z_x)).type(self.Tensor)
+            z_x = transform(z_x)
+            if self.opt.input_nc == 1:  # RGB to gray
+                z_x = z_x[0, ...] * 0.299 + z_x[1, ...] * 0.587 + z_x[2, ...] * 0.114
+                z_x = z_x.unsqueeze(0)
+            z_x = Variable(z_x).type(self.Tensor)
             z_x = torch.unsqueeze(z_x, 0)
             feat_map = self.netE_A.forward(z_x)
             self.feat_map_zx = feat_map
@@ -128,7 +133,11 @@ class CycleGAN():
         for sample_y in mc_sample_y:
             z_y = Image.open(sample_y).convert('RGB')
             z_y = self.img_resize(z_y, self.opt.loadSize)
-            z_y = Variable(transform(z_y)).type(self.Tensor)
+            z_y = transform(z_y)
+            if self.opt.output_nc == 1:  # RGB to gray
+                z_y = z_y[0, ...] * 0.299 + z_y[1, ...] * 0.587 + z_y[2, ...] * 0.114
+                z_y = z_y.unsqueeze(0)
+            z_y = Variable(z_y).type(self.Tensor)
             z_y = torch.unsqueeze(z_y, 0)
             feat_map = self.netE_B.forward(z_y)
             self.feat_map_zy = feat_map
@@ -153,7 +162,11 @@ class CycleGAN():
         mc_sample_x = random.sample(self.list_A, 1)
         z_x = Image.open(mc_sample_x[0]).convert('RGB')
         z_x = self.img_resize(z_x, self.opt.loadSize)
-        z_x = Variable(transform(z_x)).type(self.Tensor)
+        z_x = transform(z_x)
+        if self.opt.input_nc == 1:  # RGB to gray
+            z_x = z_x[0, ...] * 0.299 + z_x[1, ...] * 0.587 + z_x[2, ...] * 0.114
+            z_x = z_x.unsqueeze(0)
+        z_x = Variable(z_x).type(self.Tensor)
         z_x = torch.unsqueeze(z_x, 0)
         feat_map_zx = self.netE_A.forward(z_x)
 
@@ -161,7 +174,11 @@ class CycleGAN():
         mc_sample_y = random.sample(self.list_B, 1)
         z_y = Image.open(mc_sample_y[0]).convert('RGB')
         z_y = self.img_resize(z_y, self.opt.loadSize)
-        z_y = Variable(transform(z_y)).type(self.Tensor)
+        z_y = transform(z_y)
+        if self.opt.output_nc == 1:  # RGB to gray
+            z_y = z_y[0, ...] * 0.299 + z_y[1, ...] * 0.587 + z_y[2, ...] * 0.114
+            z_y = z_y.unsqueeze(0)
+        z_y = Variable(z_y).type(self.Tensor)
         z_y = torch.unsqueeze(z_y, 0)
         feat_map_zy = self.netE_B.forward(z_y)
 
