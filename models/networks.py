@@ -388,8 +388,8 @@ class Encoder(nn.Module):
             sequence += [nl_layer()]
         sequence += [nn.AvgPool2d(16)]
         self.conv = nn.Sequential(*sequence)
-        self.fc = nn.Sequential(*[nn.Linear(ngf * nf_mult * ratio, output_nc)])
-        self.fcVar = nn.Sequential(*[nn.Linear(ngf * nf_mult * ratio, output_nc)])
+        self.fc = nn.Sequential(*[nn.Linear(int(ngf * nf_mult * ratio), output_nc)])
+        self.fcVar = nn.Sequential(*[nn.Linear(int(ngf * nf_mult * ratio), output_nc)])
 
     def forward(self, input):
         _conv = self.conv(input)

@@ -39,7 +39,7 @@ class CycleGAN():
         self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)
 
         # get radio for network initialization
-        ratio = 256 * 256 / opt.loadSize / (opt.loadSize / ratio)
+        ratio = 256 * 256 / opt.loadSize / (opt.loadSize / opt.ratio)
 
         # load network
         netG_input_nc = opt.input_nc + 8
@@ -169,8 +169,21 @@ class CycleGAN():
             self.real_A_zy.append(real_A_zy)
 
         os.chdir(self.origin_path)
-        # self.real_A_feat_map = self.netE_A(self.real_A)
-        # self.real_B_feat_map = self.netE_B(self.real_B)
+        
+        # feat_map for real images
+        mu, logvar = self.netE_A(self.real_A)
+        std = logvar.mul(0.5).exp_()
+        eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
+        latent_code = eps.mul(std).add_(mu)
+        self.real_A_feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
+        	latent_code.size(0), latent_code.size(1), self.real_A.size(2), self.real_A.size(3))
+         
+        mu, logvar = self.netE_A(self.real_B)
+        std = logvar.mul(0.5).exp_()
+        eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
+        latent_code = eps.mul(std).add_(mu)
+        self.real_B_feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
+        	latent_code.size(0), latent_code.size(1), self.real_B.size(2), self.real_B.size(3))
 
     def inference(self):
         real_A = Variable(self.input_A).type(self.Tensor)
@@ -214,8 +227,21 @@ class CycleGAN():
         	latent_code.size(0), latent_code.size(1), z_y.size(2), z_y.size(3))
 
         os.chdir(self.origin_path)
-        # real_A_feat_map = self.netE_A(real_A)
-        # real_B_feat_map = self.netE_B(real_B)
+       
+        # feat_map for real images
+        mu, logvar = self.netE_A(real_A)
+        std = logvar.mul(0.5).exp_()
+        eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
+        latent_code = eps.mul(std).add_(mu)
+        real_A_feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
+        	latent_code.size(0), latent_code.size(1), real_A.size(2), real_A.size(3))
+         
+        mu, logvar = self.netE_A(real_B)
+        std = logvar.mul(0.5).exp_()
+        eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
+        latent_code = eps.mul(std).add_(mu)
+        real_B_feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
+        	latent_code.size(0), latent_code.size(1), real_B.size(2), real_B.size(3))
 
         # combine input image with random feature map
         real_B_zx = []
@@ -231,12 +257,12 @@ class CycleGAN():
 
         # inference
         fake_B = self.netG_A(real_A_zy)
-        fake_B_next = torch.cat((fake_B, feat_map_zx), dim=1)
+        fake_B_next = torch.cat((fake_B, real_A_feat_map), dim=1)
         self.rec_A = self.netG_B(fake_B_next).data
         self.fake_B = fake_B.data
 
         fake_A = self.netG_B(real_B_zx)
-        fake_A_next = torch.cat((fake_A, feat_map_zy), dim=1)
+        fake_A_next = torch.cat((fake_A, real_B_feat_map), dim=1)
         self.rec_B = self.netG_A(fake_A_next).data
         self.fake_A = fake_A.data
 
@@ -290,7 +316,7 @@ class CycleGAN():
         fake_B_next = []
         for i in range(0, self.opt.mc_y):
             _fake = fake_B[i*self.opt.batchSize:(i+1)*self.opt.batchSize]
-            _fake = torch.cat((_fake, self.feat_map_zx), dim=1)
+            _fake = torch.cat((_fake, self.real_A_feat_map), dim=1)
             fake_B_next.append(_fake)
         fake_B_next = torch.cat(fake_B_next)
 
@@ -305,7 +331,7 @@ class CycleGAN():
         fake_A_next = []
         for i in range(0, self.opt.mc_x):
             _fake = fake_A[i*self.opt.batchSize:(i+1)*self.opt.batchSize]
-            _fake = torch.cat((_fake, self.feat_map_zy), dim=1)
+            _fake = torch.cat((_fake, self.real_B_feat_map), dim=1)
             fake_A_next.append(_fake)
         fake_A_next = torch.cat(fake_A_next)
 
