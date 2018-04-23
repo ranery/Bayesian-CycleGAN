@@ -38,16 +38,19 @@ class CycleGAN():
             torch.manual_seed(100)
         self.save_dir = os.path.join(opt.checkpoints_dir, opt.name)
 
+        # get radio for network initialization
+        ratio = 256 * 256 / opt.loadSize / (opt.loadSize / ratio)
+
         # load network
-        netG_input_nc = opt.input_nc + 1
-        netG_output_nc = opt.output_nc + 1
+        netG_input_nc = opt.input_nc + 8
+        netG_output_nc = opt.output_nc + 8
         self.netG_A = networks.define_G(netG_input_nc, opt.output_nc, opt.ngf, opt.netG_A,
                                         opt.n_downsample_global, opt.n_blocks_global, opt.norm).type(self.Tensor)
         self.netG_B = networks.define_G(netG_output_nc, opt.input_nc, opt.ngf, opt.netG_B,
                                         opt.n_downsample_global, opt.n_blocks_global, opt.norm).type(self.Tensor)
 
-        self.netE_A = networks.define_G(opt.input_nc, 1, 32, 'encoder', opt.n_downsample_global, opt.norm).type(self.Tensor)
-        self.netE_B = networks.define_G(opt.output_nc, 1, 32, 'encoder', opt.n_downsample_global, opt.norm).type(self.Tensor)
+        self.netE_A = networks.define_G(opt.input_nc, 8, 64, 'encoder', norm=opt.norm, ratio=ratio).type(self.Tensor)
+        self.netE_B = networks.define_G(opt.output_nc, 8, 64, 'encoder', norm=opt.norm, ratio=ratio).type(self.Tensor)
 
         if self.isTrain:
             use_sigmoid = opt.no_lsgan
@@ -72,7 +75,9 @@ class CycleGAN():
             self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, tensor=self.Tensor)
             self.criterionCycle = torch.nn.L1Loss()
             # initialize optimizers
-            self.optimizer_G = torch.optim.Adam(itertools.chain(self.netG_A.parameters(), self.netG_B.parameters(), self.netE_A.parameters(), self.netE_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
+            self.optimizer_G = torch.optim.Adam(itertools.chain(self.netG_A.parameters(), self.netG_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
+            self.optimizer_E_A = torch.optim.Adam(self.netE_A.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+            self.optimizer_E_B = torch.optim.Adam(self.netE_B.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D_A = torch.optim.Adam(self.netD_A.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D_B = torch.optim.Adam(self.netD_B.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 
@@ -118,12 +123,19 @@ class CycleGAN():
                 z_x = z_x.unsqueeze(0)
             z_x = Variable(z_x).type(self.Tensor)
             z_x = torch.unsqueeze(z_x, 0)
-            feat_map = self.netE_A.forward(z_x)
+
+            self.mu_x, self.logvar_x = self.netE_A.forward(z_x)
+            std = self.logvar_x.mul(0.5).exp_()
+            eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
+            latent_code = eps.mul(std).add_(self.mu_x)
+            feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
+                latent_code.size(0), latent_code.size(1), z_x.size(2), z_x.size(3))
+
             self.feat_map_zx = feat_map
             real_B_zx = []
             for i in range(0, self.opt.batchSize):
                 _real = torch.unsqueeze(self.real_B[i], 0)
-                _real = torch.cat((_real, feat_map), dim=1)
+                _real = torch.cat([_real, feat_map], dim=1)
                 real_B_zx.append(_real)
             real_B_zx = torch.cat(real_B_zx)
             self.real_B_zx.append(real_B_zx)
@@ -139,7 +151,14 @@ class CycleGAN():
                 z_y = z_y.unsqueeze(0)
             z_y = Variable(z_y).type(self.Tensor)
             z_y = torch.unsqueeze(z_y, 0)
-            feat_map = self.netE_B.forward(z_y)
+
+            self.mu_y, self.logvar_y = self.netE_B.forward(z_y)
+            std = self.logvar_y.mul(0.5).exp_()
+            eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
+            latent_code = eps.mul(std).add_(self.mu_y)
+            feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
+            	latent_code.size(0), latent_code.size(1), z_y.size(2), z_y.size(3))
+
             self.feat_map_zy = feat_map
             real_A_zy = []
             for i in range(0, self.opt.batchSize):
@@ -168,7 +187,13 @@ class CycleGAN():
             z_x = z_x.unsqueeze(0)
         z_x = Variable(z_x).type(self.Tensor)
         z_x = torch.unsqueeze(z_x, 0)
-        feat_map_zx = self.netE_A.forward(z_x)
+
+        self.mu_x, self.logvar_x = self.netE_A.forward(z_x)
+        std = self.logvar_x.mul(0.5).exp_()
+        eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
+        latent_code = eps.mul(std).add_(self.mu_x)
+        feat_map_zx = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
+            latent_code.size(0), latent_code.size(1), z_x.size(2), z_x.size(3))
 
         os.chdir(self.path_B)
         mc_sample_y = random.sample(self.list_B, 1)
@@ -180,7 +205,13 @@ class CycleGAN():
             z_y = z_y.unsqueeze(0)
         z_y = Variable(z_y).type(self.Tensor)
         z_y = torch.unsqueeze(z_y, 0)
-        feat_map_zy = self.netE_B.forward(z_y)
+        
+        self.mu_y, self.logvar_y = self.netE_B.forward(z_y)
+        std = self.logvar_y.mul(0.5).exp_()
+        eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
+        latent_code = eps.mul(std).add_(self.mu_y)
+        feat_map_zy = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
+        	latent_code.size(0), latent_code.size(1), z_y.size(2), z_y.size(3))
 
         os.chdir(self.origin_path)
         # real_A_feat_map = self.netE_A(real_A)
@@ -220,6 +251,15 @@ class CycleGAN():
             w = target_width
             h = int(target_width * oh / ow)
         return img.resize((w, h), Image.BICUBIC)
+
+    def get_z_random(self, batchSize, nz, random_type='gauss'):
+        z = self.Tensor(batchSize, nz)
+        if random_type == 'uni':
+            z.copy_(torch.rand(batchSize, nz) * 2.0 - 1.0)
+        elif random_type == 'gauss':
+            z.copy_(torch.randn(batchSize, nz))
+        z = Variable(z)
+        return z
 
     def backward_G(self):
         # GAN loss D_A(G_A(A))
@@ -280,8 +320,15 @@ class CycleGAN():
         prior_loss_G_A = self.get_prior(self.netG_A.parameters(), self.opt.batchSize)
         prior_loss_G_B = self.get_prior(self.netG_B.parameters(), self.opt.batchSize)
 
+        # KL loss
+        kl_element = self.mu_x.pow(2).add_(self.logvar_x.exp()).mul_(-1).add_(1).add_(self.logvar_x)
+        loss_kl_EA = torch.sum(kl_element).mul_(-0.5) * self.opt.lambda_kl
+
+        kl_element = self.mu_y.pow(2).add_(self.logvar_y.exp()).mul_(-1).add_(1).add_(self.logvar_y)
+        loss_kl_EB = torch.sum(kl_element).mul_(-0.5) * self.opt.lambda_kl
+
         # total loss
-        loss_G =  loss_G_A + loss_G_B + (prior_loss_G_A + prior_loss_G_B) + (loss_cycle_G_A + loss_cycle_G_B) * self.opt.gamma + (loss_cycle_A + loss_cycle_B)
+        loss_G =  loss_G_A + loss_G_B + (prior_loss_G_A + prior_loss_G_B) + (loss_cycle_G_A + loss_cycle_G_B) * self.opt.gamma + (loss_cycle_A + loss_cycle_B) + loss_kl_EA + loss_kl_EB
         loss_G.backward()
 
         self.fake_B = fake_B.data
@@ -293,6 +340,8 @@ class CycleGAN():
         self.loss_G_B = loss_G_B.data[0] + loss_cycle_G_B.data[0] + prior_loss_G_A.data[0]
         self.loss_cycle_A = loss_cycle_A.data[0]
         self.loss_cycle_B = loss_cycle_B.data[0]
+        self.loss_kl_EA = loss_kl_EA.data[0]
+        self.loss_kl_EB = loss_kl_EB.data[0]
 
     def backward_D_A(self):
         fake_B = Variable(self.fake_B).type(self.Tensor)
@@ -340,9 +389,14 @@ class CycleGAN():
         # forward
         self.forward()
         # G_A and G_B
+        # E_A and E_B
         self.optimizer_G.zero_grad()
+        self.optimizer_E_A.zero_grad()
+        self.optimizer_E_B.zero_grad()
         self.backward_G()
         self.optimizer_G.step()
+        self.optimizer_E_A.step()
+        self.optimizer_E_B.step()
         # D_A
         self.optimizer_D_A.zero_grad()
         self.backward_D_A()
@@ -365,6 +419,9 @@ class CycleGAN():
         elif self.opt.gamma > 0 or self.opt.gamma < 1:
             loss['cyc_G_A'] = self.loss_cycle_A
             loss['cyc_G_B'] = self.loss_cycle_B
+        if self.opt.lambda_kl > 0:
+        	loss['kl_EA'] = self.loss_kl_EA
+        	loss['kl_EB'] = self.loss_kl_EB
         return loss
 
     def get_stye_loss(self):

@@ -40,7 +40,7 @@ def get_norm_layer(norm_type='instance'):
         raise NotImplementedError('normalization layer [%s] is not found.' % norm_type)
     return norm_layer
 
-def define_G(input_nc, output_nc, ngf, netG, n_downsample_global=3, n_blocks_global=9, norm='instance'):
+def define_G(input_nc, output_nc, ngf, netG, n_downsample_global=3, n_blocks_global=9, norm='instance', ratio=1):
     norm_layer = get_norm_layer(norm_type=norm)
     if netG == 'global':
         netG = GlobalGenerator(input_nc, output_nc, ngf, n_downsample_global, n_blocks_global, norm_layer)
@@ -49,7 +49,7 @@ def define_G(input_nc, output_nc, ngf, netG, n_downsample_global=3, n_blocks_glo
     elif netG == 'unet_512':
         netG = UnetGenerator(input_nc, output_nc, 9, ngf, norm_layer, use_dropout=False)
     elif netG == 'encoder':
-        netG = Encoder(input_nc, output_nc, ngf, n_downsample_global, norm_layer)
+        netG = Encoder(input_nc, output_nc, 64, 3, norm_layer, ratio)
     else:
         raise NotImplementedError('generator [%s] is not found.' % netG)
     netG.apply(weights_init_gaussian)
@@ -367,38 +367,37 @@ class NLayerDiscriminator(nn.Module):
 
 # encoder
 class Encoder(nn.Module):
-    def __init__(self, input_nc, output_nc, ngf=32, n_downsampling=2, norm_layer=nn.BatchNorm2d):
+    def __init__(self, input_nc, output_nc, ngf=64, n_layers=5, norm_layer=nn.BatchNorm2d, ratio=1):
         super(Encoder, self).__init__()
-        self.output_nc = output_nc
+        nl_layer = functools.partial(nn.ReLU, inplace=True)
 
-        model = [nn.ReflectionPad2d(3),
-                 nn.Conv2d(input_nc, ngf, kernel_size=7, padding=0),
-                 norm_layer(ngf),
-                 nn.ReLU(True)]
+        kw, padw = 4, 1
+        sequence = [nn.Conv2d(input_nc, ngf, kernel_size=kw,
+                              stride=int(4 / ratio), padding=padw), nl_layer()]
 
-        # downsample
-        for i in range(n_downsampling):
-            mult = 2**i
-            model += [nn.Conv2d(ngf*mult, ngf*mult*2, kernel_size=3, stride=2, padding=1),
-                      norm_layer(ngf*mult*2),
-                      nn.ReLU(True)]
-
-        # upsample
-        for i in range(n_downsampling):
-            mult = 2**(n_downsampling - i)
-            model += [nn.ConvTranspose2d(ngf*mult, int(ngf*mult/2), kernel_size=3, stride=2, padding=1, output_padding=1),
-                      norm_layer(int(ngf*mult/2)),
-                      nn.ReLU(True)]
-
-        model += [nn.ReflectionPad2d(3),
-                  nn.Conv2d(ngf, output_nc, kernel_size=7, padding=0),
-                  nn.Tanh()]
-
-        self.model = nn.Sequential(*model)
+        nf_mult = 1
+        nf_mult_prev = 1
+        for n in range(1, n_layers):
+            nf_mult_prev = nf_mult
+            nf_mult = min(2 ** n, 4)
+            sequence += [
+                nn.Conv2d(ngf * nf_mult_prev, ngf * nf_mult,
+                          kernel_size=kw, stride=2, padding=padw)]
+            if norm_layer is not None:
+                sequence += [norm_layer(ngf * nf_mult)]
+            sequence += [nl_layer()]
+        sequence += [nn.AvgPool2d(16)]
+        self.conv = nn.Sequential(*sequence)
+        self.fc = nn.Sequential(*[nn.Linear(ngf * nf_mult * ratio, output_nc)])
+        self.fcVar = nn.Sequential(*[nn.Linear(ngf * nf_mult * ratio, output_nc)])
 
     def forward(self, input):
-        outputs = self.model(input)
-        return outputs
+        _conv = self.conv(input)
+        # print(_conv)
+        _conv = _conv.view(input.size(0), -1)
+        output = self.fc(_conv)
+        outputVar = self.fcVar(_conv)
+        return output, outputVar
 
 # vgg net model
 from torchvision import models
