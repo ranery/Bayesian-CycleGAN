@@ -178,7 +178,7 @@ class CycleGAN():
         self.real_A_feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
         	latent_code.size(0), latent_code.size(1), self.real_A.size(2), self.real_A.size(3))
          
-        mu, logvar = self.netE_A(self.real_B)
+        mu, logvar = self.netE_B(self.real_B)
         std = logvar.mul(0.5).exp_()
         eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
         latent_code = eps.mul(std).add_(mu)
@@ -235,8 +235,8 @@ class CycleGAN():
         latent_code = eps.mul(std).add_(mu)
         real_A_feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
         	latent_code.size(0), latent_code.size(1), real_A.size(2), real_A.size(3))
-         
-        mu, logvar = self.netE_A(real_B)
+        
+        mu, logvar = self.netE_B(real_B)
         std = logvar.mul(0.5).exp_()
         eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
         latent_code = eps.mul(std).add_(mu)
