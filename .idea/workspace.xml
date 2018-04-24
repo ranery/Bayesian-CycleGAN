@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9756c2a2-a447-40c5-847e-42bb22ac17cc" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/Encoder.py" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/CycleGAN_bayes.py" afterPath="$PROJECT_DIR$/models/CycleGAN_bayes.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/networks.py" afterPath="$PROJECT_DIR$/models/networks.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -16,8 +19,8 @@
       <file leaf-file-name="CycleGAN_bayes.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/models/CycleGAN_bayes.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1242">
-              <caret line="237" column="8" lean-forward="true" selection-start-line="237" selection-start-column="8" selection-end-line="237" selection-end-column="8" />
+            <state relative-caret-position="184">
+              <caret line="461" column="41" lean-forward="true" selection-start-line="461" selection-start-column="41" selection-end-line="461" selection-end-column="41" />
               <folding>
                 <element signature="e#54#72#0" expanded="true" />
               </folding>
@@ -28,26 +31,9 @@
       <file leaf-file-name="networks.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/models/networks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="725">
-              <caret line="391" column="73" lean-forward="false" selection-start-line="391" selection-start-column="73" selection-end-line="391" selection-end-column="73" />
+            <state relative-caret-position="278">
+              <caret line="377" column="19" lean-forward="true" selection-start-line="377" selection-start-column="19" selection-end-line="377" selection-end-column="19" />
               <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Encoder.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/models/Encoder.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="621">
-              <caret line="84" column="0" lean-forward="true" selection-start-line="84" selection-start-column="0" selection-end-line="84" selection-end-column="0" />
-              <folding>
-                <element signature="e#54#72#0" expanded="true" />
-                <marker date="1524461019845" expanded="true" signature="4676:5956" ph="..." />
-                <marker date="1524461019845" expanded="true" signature="4899:5171" ph="..." />
-                <marker date="1524461019845" expanded="true" signature="5420:5505" ph="..." />
-                <marker date="1524461019845" expanded="true" signature="5558:5657" ph="..." />
-                <marker date="1524461019845" expanded="true" signature="5706:5857" ph="..." />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -146,7 +132,6 @@
     <setting file="file://$PROJECT_DIR$/util/util.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/util/visualizer.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/test_bayes.py" root0="SKIP_INSPECTION" />
-    <setting file="file://$PROJECT_DIR$/models/Encoder.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/data/unaligned_dataset.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/data/custom_dataset_data_loader.py" root0="SKIP_INSPECTION" />
   </component>
@@ -160,8 +145,8 @@
         <option value="$PROJECT_DIR$/train_bayes.py" />
         <option value="$PROJECT_DIR$/train.py" />
         <option value="$PROJECT_DIR$/models/CycleGAN.py" />
-        <option value="$PROJECT_DIR$/models/Encoder.py" />
         <option value="$PROJECT_DIR$/options/base_options.py" />
+        <option value="$PROJECT_DIR$/models/Encoder.py" />
         <option value="$PROJECT_DIR$/models/networks.py" />
         <option value="$PROJECT_DIR$/models/CycleGAN_bayes.py" />
       </list>
@@ -603,21 +588,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/models/Encoder.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="621">
-          <caret line="84" column="0" lean-forward="true" selection-start-line="84" selection-start-column="0" selection-end-line="84" selection-end-column="0" />
-          <folding>
-            <element signature="e#54#72#0" expanded="true" />
-            <marker date="1524461019845" expanded="true" signature="4676:5956" ph="..." />
-            <marker date="1524461019845" expanded="true" signature="4899:5171" ph="..." />
-            <marker date="1524461019845" expanded="true" signature="5420:5505" ph="..." />
-            <marker date="1524461019845" expanded="true" signature="5558:5657" ph="..." />
-            <marker date="1524461019845" expanded="true" signature="5706:5857" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/scripts/train_cyclegan_bayes_lsgan.sh">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -642,14 +612,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/models/networks.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="725">
-          <caret line="391" column="73" lean-forward="false" selection-start-line="391" selection-start-column="73" selection-end-line="391" selection-end-column="73" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/util/visualizer.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="138">
@@ -666,10 +628,26 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/models/Encoder.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="23">
+          <caret line="61" column="0" lean-forward="true" selection-start-line="61" selection-start-column="0" selection-end-line="61" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/networks.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="278">
+          <caret line="377" column="19" lean-forward="true" selection-start-line="377" selection-start-column="19" selection-end-line="377" selection-end-column="19" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/models/CycleGAN_bayes.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1242">
-          <caret line="237" column="8" lean-forward="true" selection-start-line="237" selection-start-column="8" selection-end-line="237" selection-end-column="8" />
+        <state relative-caret-position="184">
+          <caret line="461" column="41" lean-forward="true" selection-start-line="461" selection-start-column="41" selection-end-line="461" selection-end-column="41" />
           <folding>
             <element signature="e#54#72#0" expanded="true" />
           </folding>

@@ -74,6 +74,7 @@ class CycleGAN():
             # define loss function
             self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, tensor=self.Tensor)
             self.criterionCycle = torch.nn.L1Loss()
+            self.criterionCycle_z = torch.nn.MSELoss()
             # initialize optimizers
             self.optimizer_G = torch.optim.Adam(itertools.chain(self.netG_A.parameters(), self.netG_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_E_A = torch.optim.Adam(self.netE_A.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -113,6 +114,10 @@ class CycleGAN():
         mc_sample_y = random.sample(self.list_B, self.opt.mc_y)
         self.real_B_zx = []
         self.real_A_zy = []
+        self.mu_x = []
+        self.mu_y = []
+        self.logvar_x = []
+        self.logvar_y = []
         os.chdir(self.path_A)
         for sample_x in mc_sample_x:
             z_x = Image.open(sample_x).convert('RGB')
@@ -124,10 +129,12 @@ class CycleGAN():
             z_x = Variable(z_x).type(self.Tensor)
             z_x = torch.unsqueeze(z_x, 0)
 
-            self.mu_x, self.logvar_x = self.netE_A.forward(z_x)
-            std = self.logvar_x.mul(0.5).exp_()
+            mu_x, logvar_x = self.netE_A.forward(z_x)
+            self.mu_x.append(mu_x)
+            self.logvar_x.append(logvar_x)
+            std = logvar_x.mul(0.5).exp_()
             eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
-            latent_code = eps.mul(std).add_(self.mu_x)
+            latent_code = eps.mul(std).add_(mu_x)
             feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
                 latent_code.size(0), latent_code.size(1), z_x.size(2), z_x.size(3))
 
@@ -139,6 +146,8 @@ class CycleGAN():
                 real_B_zx.append(_real)
             real_B_zx = torch.cat(real_B_zx)
             self.real_B_zx.append(real_B_zx)
+        self.mu_x = torch.cat(self.mu_x)
+        self.logvar_x = torch.cat(self.logvar_x)
 
         os.chdir(self.path_B)
         self.feat_map_zy = []
@@ -152,10 +161,12 @@ class CycleGAN():
             z_y = Variable(z_y).type(self.Tensor)
             z_y = torch.unsqueeze(z_y, 0)
 
-            self.mu_y, self.logvar_y = self.netE_B.forward(z_y)
-            std = self.logvar_y.mul(0.5).exp_()
+            mu_y, logvar_y = self.netE_B.forward(z_y)
+            self.mu_y.append(mu_y)
+            self.logvar_y.append(logvar_y)
+            std = logvar_y.mul(0.5).exp_()
             eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
-            latent_code = eps.mul(std).add_(self.mu_y)
+            latent_code = eps.mul(std).add_(mu_y)
             feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
             	latent_code.size(0), latent_code.size(1), z_y.size(2), z_y.size(3))
 
@@ -167,6 +178,8 @@ class CycleGAN():
                 real_A_zy.append(_real)
             real_A_zy = torch.cat(real_A_zy)
             self.real_A_zy.append(real_A_zy)
+        self.mu_y = torch.cat(self.mu_y)
+        self.logvar_y = torch.cat(self.logvar_y)
 
         os.chdir(self.origin_path)
         
@@ -235,7 +248,7 @@ class CycleGAN():
         latent_code = eps.mul(std).add_(mu)
         real_A_feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
         	latent_code.size(0), latent_code.size(1), real_A.size(2), real_A.size(3))
-        
+
         mu, logvar = self.netE_B(real_B)
         std = logvar.mul(0.5).exp_()
         eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
@@ -354,7 +367,7 @@ class CycleGAN():
         loss_kl_EB = torch.sum(kl_element).mul_(-0.5) * self.opt.lambda_kl
 
         # total loss
-        loss_G =  loss_G_A + loss_G_B + (prior_loss_G_A + prior_loss_G_B) + (loss_cycle_G_A + loss_cycle_G_B) * self.opt.gamma + (loss_cycle_A + loss_cycle_B) + loss_kl_EA + loss_kl_EB
+        loss_G =  loss_G_A + loss_G_B + (prior_loss_G_A + prior_loss_G_B) + (loss_cycle_G_A + loss_cycle_G_B) * self.opt.gamma + (loss_cycle_A + loss_cycle_B) + (loss_kl_EA + loss_kl_EB)
         loss_G.backward()
 
         self.fake_B = fake_B.data
