@@ -48,29 +48,30 @@ if opt.debug:
     opt.niter_decay = 0
     opt.max_dataset_size = 10
 
-# pre-train
+# pre-train for cityscapes if use semi-supervised
 if opt.need_match:
-    # one-paired data path and name list
+    # paired data path and name list
     origin_path = os.getcwd()
     path_A = opt.dataroot + '/pairA'
     path_B = opt.dataroot + '/pairB'
     list_A = os.listdir(path_A)
     list_B = os.listdir(path_B)
 
-    os.chdir(path_A)
-    A = Image.open(list_A[0]).convert('RGB')
-    os.chdir(path_B)
-    B = Image.open(list_B[0]).convert('RGB')
-    A = transform(model.img_resize(A, opt.loadSize))
-    B = transform(model.img_resize(B, opt.loadSize))
-    A = torch.unsqueeze(A, 0)
-    B = torch.unsqueeze(B, 0)
-    data = {'A': A, 'B': B, 'A_paths': path_A, 'B_paths': path_B}
+    # for paired data
+    for i in range(0, len(list_A)):
+        os.chdir(path_A)
+        A = Image.open(list_A[i]).convert('RGB')
+        os.chdir(path_B)
+        B = Image.open(list_B[i]).convert('RGB')
+        A = transform(model.img_resize(A, opt.loadSize))
+        B = transform(model.img_resize(B, opt.loadSize))
+        A = torch.unsqueeze(A, 0)
+        B = torch.unsqueeze(B, 0)
+        data = {'A': A, 'B': B, 'A_paths': path_A, 'B_paths': path_B}
 
-    os.chdir(origin_path)
-    for i in range(0, 10):
+        os.chdir(origin_path)
         model.set_input(data)
-        model.optimize()
+        model.optimize(pair=True)
 
 # train
 total_steps = (start_epoch-1) * dataset_size + epoch_iter
@@ -78,13 +79,14 @@ for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
     epoch_start_time = time.time()
     if epoch != start_epoch:
         epoch_iter = epoch_iter % dataset_size
+    # for unpaired data
     for i, data in enumerate(dataset, start=epoch_iter):
         iter_start_time = time.time()
         total_steps += opt.batchSize
         epoch_iter += opt.batchSize
 
         model.set_input(data)
-        model.optimize()
+        model.optimize(pair=False)
 
         if total_steps % opt.display_freq == 0:
             save_result = total_steps % opt.update_html_freq == 0

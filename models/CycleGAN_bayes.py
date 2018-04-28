@@ -8,7 +8,7 @@ import torch
 import os
 from collections import OrderedDict
 from torch.autograd import Variable
-from torch.optim import lr_scheduler
+# from torch.optim import lr_scheduler
 import itertools
 import util.util as util
 from util.image_pool import ImagePool
@@ -42,15 +42,15 @@ class CycleGAN():
         ratio = 256 * 256 / opt.loadSize / (opt.loadSize / opt.ratio)
 
         # load network
-        netG_input_nc = opt.input_nc + 8
-        netG_output_nc = opt.output_nc + 8
+        netG_input_nc = opt.input_nc + 1
+        netG_output_nc = opt.output_nc + 1
         self.netG_A = networks.define_G(netG_input_nc, opt.output_nc, opt.ngf, opt.netG_A,
                                         opt.n_downsample_global, opt.n_blocks_global, opt.norm).type(self.Tensor)
         self.netG_B = networks.define_G(netG_output_nc, opt.input_nc, opt.ngf, opt.netG_B,
                                         opt.n_downsample_global, opt.n_blocks_global, opt.norm).type(self.Tensor)
 
-        self.netE_A = networks.define_G(opt.input_nc, 8, 64, 'encoder', norm=opt.norm, ratio=ratio).type(self.Tensor)
-        self.netE_B = networks.define_G(opt.output_nc, 8, 64, 'encoder', norm=opt.norm, ratio=ratio).type(self.Tensor)
+        self.netE_A = networks.define_G(opt.input_nc, 1, 64, 'encoder', opt.n_downsample_global, norm=opt.norm, ratio=ratio).type(self.Tensor)
+        self.netE_B = networks.define_G(opt.output_nc, 1, 64, 'encoder', opt.n_downsample_global, norm=opt.norm, ratio=ratio).type(self.Tensor)
 
         if self.isTrain:
             use_sigmoid = opt.no_lsgan
@@ -74,7 +74,7 @@ class CycleGAN():
             # define loss function
             self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, tensor=self.Tensor)
             self.criterionCycle = torch.nn.L1Loss()
-            self.criterionCycle_z = torch.nn.MSELoss()
+            self.criterionL1 = torch.nn.L1Loss()
             # initialize optimizers
             self.optimizer_G = torch.optim.Adam(itertools.chain(self.netG_A.parameters(), self.netG_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_E_A = torch.optim.Adam(self.netE_A.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -129,15 +129,9 @@ class CycleGAN():
             z_x = Variable(z_x).type(self.Tensor)
             z_x = torch.unsqueeze(z_x, 0)
 
-            mu_x, logvar_x = self.netE_A.forward(z_x)
+            mu_x, logvar_x, feat_map = self.netE_A.forward(z_x)
             self.mu_x.append(mu_x)
             self.logvar_x.append(logvar_x)
-            std = logvar_x.mul(0.5).exp_()
-            eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
-            latent_code = eps.mul(std).add_(mu_x)
-            feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
-                latent_code.size(0), latent_code.size(1), z_x.size(2), z_x.size(3))
-
             self.feat_map_zx = feat_map
             real_B_zx = []
             for i in range(0, self.opt.batchSize):
@@ -150,7 +144,6 @@ class CycleGAN():
         self.logvar_x = torch.cat(self.logvar_x)
 
         os.chdir(self.path_B)
-        self.feat_map_zy = []
         for sample_y in mc_sample_y:
             z_y = Image.open(sample_y).convert('RGB')
             z_y = self.img_resize(z_y, self.opt.loadSize)
@@ -161,15 +154,9 @@ class CycleGAN():
             z_y = Variable(z_y).type(self.Tensor)
             z_y = torch.unsqueeze(z_y, 0)
 
-            mu_y, logvar_y = self.netE_B.forward(z_y)
+            mu_y, logvar_y, feat_map = self.netE_B.forward(z_y)
             self.mu_y.append(mu_y)
             self.logvar_y.append(logvar_y)
-            std = logvar_y.mul(0.5).exp_()
-            eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
-            latent_code = eps.mul(std).add_(mu_y)
-            feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
-            	latent_code.size(0), latent_code.size(1), z_y.size(2), z_y.size(3))
-
             self.feat_map_zy = feat_map
             real_A_zy = []
             for i in range(0, self.opt.batchSize):
@@ -182,21 +169,6 @@ class CycleGAN():
         self.logvar_y = torch.cat(self.logvar_y)
 
         os.chdir(self.origin_path)
-        
-        # feat_map for real images
-        mu, logvar = self.netE_A(self.real_A)
-        std = logvar.mul(0.5).exp_()
-        eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
-        latent_code = eps.mul(std).add_(mu)
-        self.real_A_feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
-        	latent_code.size(0), latent_code.size(1), self.real_A.size(2), self.real_A.size(3))
-         
-        mu, logvar = self.netE_B(self.real_B)
-        std = logvar.mul(0.5).exp_()
-        eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
-        latent_code = eps.mul(std).add_(mu)
-        self.real_B_feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
-        	latent_code.size(0), latent_code.size(1), self.real_B.size(2), self.real_B.size(3))
 
     def inference(self):
         real_A = Variable(self.input_A).type(self.Tensor)
@@ -214,12 +186,7 @@ class CycleGAN():
         z_x = Variable(z_x).type(self.Tensor)
         z_x = torch.unsqueeze(z_x, 0)
 
-        self.mu_x, self.logvar_x = self.netE_A.forward(z_x)
-        std = self.logvar_x.mul(0.5).exp_()
-        eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
-        latent_code = eps.mul(std).add_(self.mu_x)
-        feat_map_zx = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
-            latent_code.size(0), latent_code.size(1), z_x.size(2), z_x.size(3))
+        mu_x, logvar_x, feat_map_zx = self.netE_A.forward(z_x)
 
         os.chdir(self.path_B)
         mc_sample_y = random.sample(self.list_B, 1)
@@ -232,29 +199,9 @@ class CycleGAN():
         z_y = Variable(z_y).type(self.Tensor)
         z_y = torch.unsqueeze(z_y, 0)
         
-        self.mu_y, self.logvar_y = self.netE_B.forward(z_y)
-        std = self.logvar_y.mul(0.5).exp_()
-        eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
-        latent_code = eps.mul(std).add_(self.mu_y)
-        feat_map_zy = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
-        	latent_code.size(0), latent_code.size(1), z_y.size(2), z_y.size(3))
+        mu_y, logvar_y, feat_map_zy = self.netE_B.forward(z_y)
 
         os.chdir(self.origin_path)
-       
-        # feat_map for real images
-        mu, logvar = self.netE_A(real_A)
-        std = logvar.mul(0.5).exp_()
-        eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
-        latent_code = eps.mul(std).add_(mu)
-        real_A_feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
-        	latent_code.size(0), latent_code.size(1), real_A.size(2), real_A.size(3))
-
-        mu, logvar = self.netE_B(real_B)
-        std = logvar.mul(0.5).exp_()
-        eps = self.get_z_random(std.size(0), std.size(1), 'gauss')
-        latent_code = eps.mul(std).add_(mu)
-        real_B_feat_map = latent_code.view(latent_code.size(0), latent_code.size(1), 1, 1).expand(
-        	latent_code.size(0), latent_code.size(1), real_B.size(2), real_B.size(3))
 
         # combine input image with random feature map
         real_B_zx = []
@@ -270,12 +217,12 @@ class CycleGAN():
 
         # inference
         fake_B = self.netG_A(real_A_zy)
-        fake_B_next = torch.cat((fake_B, real_A_feat_map), dim=1)
+        fake_B_next = torch.cat((fake_B, feat_map_zx), dim=1)
         self.rec_A = self.netG_B(fake_B_next).data
         self.fake_B = fake_B.data
 
         fake_A = self.netG_B(real_B_zx)
-        fake_A_next = torch.cat((fake_A, real_B_feat_map), dim=1)
+        fake_A_next = torch.cat((fake_A, feat_map_zy), dim=1)
         self.rec_B = self.netG_A(fake_A_next).data
         self.fake_A = fake_A.data
 
@@ -329,7 +276,7 @@ class CycleGAN():
         fake_B_next = []
         for i in range(0, self.opt.mc_y):
             _fake = fake_B[i*self.opt.batchSize:(i+1)*self.opt.batchSize]
-            _fake = torch.cat((_fake, self.real_A_feat_map), dim=1)
+            _fake = torch.cat((_fake, self.feat_map_zx), dim=1)
             fake_B_next.append(_fake)
         fake_B_next = torch.cat(fake_B_next)
 
@@ -344,7 +291,7 @@ class CycleGAN():
         fake_A_next = []
         for i in range(0, self.opt.mc_x):
             _fake = fake_A[i*self.opt.batchSize:(i+1)*self.opt.batchSize]
-            _fake = torch.cat((_fake, self.real_B_feat_map), dim=1)
+            _fake = torch.cat((_fake, self.feat_map_zy), dim=1)
             fake_A_next.append(_fake)
         fake_A_next = torch.cat(fake_A_next)
 
@@ -424,7 +371,84 @@ class CycleGAN():
         loss_D_B.backward()
         self.loss_D_B = loss_D_B.data[0]
 
-    def optimize(self):
+    def backward_G_pair(self):
+        # GAN loss D_A(G_A(A)) and L1 loss
+        fake_B = []
+        loss_G_A_L1 = 0
+        for real_A in self.real_A_zy:
+            _fake = self.netG_A(real_A)
+            loss_G_A_L1 += self.criterionL1(_fake, self.real_B) * self.opt.lambda_A
+            fake_B.append(_fake)
+        fake_B = torch.cat(fake_B)
+
+        pred_fake = self.netD_A(fake_B)
+        loss_G_A = self.criterionGAN(pred_fake, True)
+
+        # GAN loss D_B(G_B(B))
+        fake_A = []
+        loss_G_B_L1 = 0
+        for real_B in self.real_B_zx:
+            _fake = self.netG_B(real_B)
+            loss_G_B_L1 += self.criterionL1(_fake, self.real_A) * self.opt.lambda_B
+            fake_A.append(_fake)
+        fake_A = torch.cat(fake_A)
+
+        pred_fake = self.netD_B(fake_A)
+        loss_G_B = self.criterionGAN(pred_fake, True)
+
+        # prior loss
+        prior_loss_G_A = self.get_prior(self.netG_A.parameters(), self.opt.batchSize)
+        prior_loss_G_B = self.get_prior(self.netG_B.parameters(), self.opt.batchSize)
+
+        # KL loss
+        kl_element = self.mu_x.pow(2).add_(self.logvar_x.exp()).mul_(-1).add_(1).add_(self.logvar_x)
+        loss_kl_EA = torch.sum(kl_element).mul_(-0.5) * self.opt.lambda_kl
+
+        kl_element = self.mu_y.pow(2).add_(self.logvar_y.exp()).mul_(-1).add_(1).add_(self.logvar_y)
+        loss_kl_EB = torch.sum(kl_element).mul_(-0.5) * self.opt.lambda_kl
+
+        # total loss
+        loss_G = loss_G_A + loss_G_B + (prior_loss_G_A + prior_loss_G_B) + (loss_kl_EA + loss_kl_EB) + (loss_G_A_L1 + loss_G_B_L1)
+        loss_G.backward()
+
+        self.fake_B = fake_B.data
+        self.fake_A = fake_A.data
+
+    def backward_D_A_pair(self):
+        fake_B = Variable(self.fake_B).type(self.Tensor)
+        # how well it classifiers fake images
+        pred_fake = self.netD_A(fake_B.detach())
+        loss_D_fake = self.criterionGAN(pred_fake, False)
+
+        # how well it classifiers real images
+        pred_real = self.netD_A(self.real_B)
+        loss_D_real = self.criterionGAN(pred_real, True) * self.opt.mc_y
+
+        # prior loss
+        prior_loss_D_A = self.get_prior(self.netD_A.parameters(), self.opt.batchSize)
+
+        # total loss
+        loss_D_A = (loss_D_real + loss_D_fake) * 0.5 + prior_loss_D_A
+        loss_D_A.backward()
+
+    def backward_D_B_pair(self):
+        fake_A = Variable(self.fake_A).type(self.Tensor)
+        # how well it classifiers fake images
+        pred_fake = self.netD_B(fake_A.detach())
+        loss_D_fake = self.criterionGAN(pred_fake, False)
+
+        # how well it classifiers real images
+        pred_real = self.netD_B(self.real_A)
+        loss_D_real = self.criterionGAN(pred_real, True) * self.opt.mc_x
+
+        # prior loss
+        prior_loss_D_B = self.get_prior(self.netD_B.parameters(), self.opt.batchSize)
+
+        # total loss
+        loss_D_B = (loss_D_real + loss_D_fake) * 0.5 + prior_loss_D_B
+        loss_D_B.backward()
+
+    def optimize(self, pair=False):
         # forward
         self.forward()
         # G_A and G_B
@@ -432,17 +456,26 @@ class CycleGAN():
         self.optimizer_G.zero_grad()
         self.optimizer_E_A.zero_grad()
         self.optimizer_E_B.zero_grad()
-        self.backward_G()
+        if pair==True:
+            self.backward_G_pair()
+        else:
+            self.backward_G()
         self.optimizer_G.step()
         self.optimizer_E_A.step()
         self.optimizer_E_B.step()
         # D_A
         self.optimizer_D_A.zero_grad()
-        self.backward_D_A()
+        if pair==True:
+            self.backward_D_A_pair()
+        else:
+            self.backward_D_A()
         self.optimizer_D_A.step()
         # D_B
         self.optimizer_D_B.zero_grad()
-        self.backward_D_B()
+        if pair==True:
+            self.backward_D_B_pair()
+        else:
+            self.backward_D_B()
         self.optimizer_D_B.step()
 
     def get_current_loss(self):
@@ -455,7 +488,7 @@ class CycleGAN():
         if self.opt.gamma == 0:
             loss['cyc_A'] = self.loss_cycle_A
             loss['cyc_B'] = self.loss_cycle_B
-        elif self.opt.gamma > 0 or self.opt.gamma < 1:
+        elif self.opt.gamma > 0:
             loss['cyc_G_A'] = self.loss_cycle_A
             loss['cyc_G_B'] = self.loss_cycle_B
         if self.opt.lambda_kl > 0:

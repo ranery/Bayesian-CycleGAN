@@ -25,13 +25,13 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument('--no_lsgan', action='store_true', help='do *not* use least square GAN, if false, use vanilla GAN')
         self.parser.add_argument('--lambda_A', type=float, default=10.0, help='weight for cycle loss (A -> B -> A)')
         self.parser.add_argument('--lambda_B', type=float, default=10.0, help='weight for cycle loss (B -> A -> B)')
-        self.parser.add_argument('--lambda_kl', type=float, default=10.0, help='weight for kl loss')
+        self.parser.add_argument('--lambda_kl', type=float, default=0.1, help='weight for kl loss')
         self.parser.add_argument('--mc_y', type=int, default=3, help='Mento Carlo samples for generate feature map zy')
         self.parser.add_argument('--mc_x', type=int, default=3, help='Mento Carlo samples for generate feature map zx')
         self.parser.add_argument('--no_html', action='store_true', help='do not save intermediate training results to [opt.checkpoints_dir]/[opt.name]/web/')
         self.parser.add_argument('--lr_policy', type=str, default='lambda', help='learning rate policy: lambda|step|plateau')
         self.parser.add_argument('--lr_decay_iters', type=int, default=50, help='multiply by a gamma every lr_decay_iters iterations')
         self.parser.add_argument('--debug', action='store_true', help='only do one epoch and displays at each iteration')
-        self.parser.add_argument('--need_match', action='store_true', help='use one paired data to assure the match for segmentation')
+        self.parser.add_argument('--need_match', action='store_true', help='use paired data to assure the match for segmentation')
 
         self.isTrain = True

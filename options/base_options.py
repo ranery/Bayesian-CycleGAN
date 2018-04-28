@@ -23,7 +23,7 @@ class BaseOptions():
 
         # input/output sizes
         self.parser.add_argument('--batchSize', type=int, default=1, help='input batch size')
-        self.parser.add_argument('--loadSize', type=int, default=512, help='scale images to this size')
+        self.parser.add_argument('--loadSize', type=int, default=256, help='scale images to this size')
         self.parser.add_argument('--ratio', type=int, default=1, help='img width / height')
         self.parser.add_argument('--fineSize', type=int, default=256, help='then crop to this size')
         self.parser.add_argument('--input_nc', type=int, default=3, help='# of input image channels')
@@ -58,8 +58,8 @@ class BaseOptions():
 
         # for discriminator
         self.parser.add_argument('--netD', type=str, default='mult_sacle', help='selects model to use for netD')
-        self.parser.add_argument('--num_D_A', type=int, default=2, help='number of discriminators to use')
-        self.parser.add_argument('--num_D_B', type=int, default=2, help='number of discriminators to use')
+        self.parser.add_argument('--num_D_A', type=int, default=1, help='number of discriminators to use')
+        self.parser.add_argument('--num_D_B', type=int, default=1, help='number of discriminators to use')
         self.parser.add_argument('--n_layers_D', type=int, default=3, help='number of layers')
         self.parser.add_argument('--ndf', type=int, default=64, help='# of discrim filters in first conv layer')
 
