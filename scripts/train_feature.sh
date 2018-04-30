@@ -1,0 +1,1 @@
+python ./models/Encoder.py --dataroot /root/nfs-datasets/gan_dataset/edges2shoes/ --name shoes_bayes_L1_lsgan --n_downsample_global 2 --which_epoch 300 --loadSize 256

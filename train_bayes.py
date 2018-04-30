@@ -5,7 +5,6 @@
 """
 import time
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
 from options.train_options import TrainOptions
 from data.data_loader import CreateDataLoader
 from models.CycleGAN_bayes import CycleGAN
@@ -34,7 +33,7 @@ visualizer = Visualizer(opt)
 
 # continue train or not
 if opt.continue_train:
-    start_epoch = 14
+    start_epoch = 15
     epoch_iter = 0
     print('Resuming from epoch %d at iteration %d' % (start_epoch, epoch_iter))
 else:

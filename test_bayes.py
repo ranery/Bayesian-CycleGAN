@@ -5,7 +5,6 @@
 """
 import time
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
 from options.test_options import TestOptions
 from data.data_loader import CreateDataLoader
 from models.CycleGAN_bayes import CycleGAN

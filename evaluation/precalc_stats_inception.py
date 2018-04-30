@@ -31,6 +31,7 @@ data_path = opt.dir
 # loads all images into memory (this might require a lot of RAM!)
 print("load images..", end=" " , flush=True)
 image_list = glob.glob(os.path.join(data_path, '*.png'))
+image_list += glob.glob(os.path.join(data_path, '*.jpg'))
 images = [imread(str(fn)).astype(np.float32) for fn in image_list]
 print("%d images found and loaded" % len(images))
 

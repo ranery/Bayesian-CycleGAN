@@ -97,5 +97,11 @@ ENV/
 # mkdocs documentation
 /site
 
+
+test_result
+results
+*.out
+*.log
+checkpoints
 # mypy
 .mypy_cache/

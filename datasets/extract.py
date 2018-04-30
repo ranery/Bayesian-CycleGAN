@@ -22,12 +22,11 @@ def img_extract(img_file, path_save):
         img.save(os.path.join(path_save, os.path.basename(img_file)))
 
 
-path_save = opt.save_dir + '_' + opt.type + '/'
-if not os.path.exit(path_save):
+path_save = opt.save_dir  + opt.type + '/'
+if not os.path.exists(path_save):
 	os.mkdir(path_save)
 
 num_file = 0
 for filename in os.listdir(opt.dir):
     num_file += 1
-    print(num_file)
     img_extract(filename, path_save)
