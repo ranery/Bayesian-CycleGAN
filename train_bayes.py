@@ -5,6 +5,7 @@
 """
 import time
 import os
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 from options.train_options import TrainOptions
 from data.data_loader import CreateDataLoader
 from models.CycleGAN_bayes import CycleGAN
@@ -33,7 +34,7 @@ visualizer = Visualizer(opt)
 
 # continue train or not
 if opt.continue_train:
-    start_epoch = 15
+    start_epoch = 14
     epoch_iter = 0
     print('Resuming from epoch %d at iteration %d' % (start_epoch, epoch_iter))
 else:
@@ -56,28 +57,30 @@ if opt.need_match:
     list_A = os.listdir(path_A)
     list_B = os.listdir(path_B)
 
-    # for paired data
-    for i in range(0, len(list_A)):
-        os.chdir(path_A)
-        A = Image.open(list_A[i]).convert('RGB')
-        os.chdir(path_B)
-        B = Image.open(list_B[i]).convert('RGB')
-        A = transform(model.img_resize(A, opt.loadSize))
-        B = transform(model.img_resize(B, opt.loadSize))
-        A = torch.unsqueeze(A, 0)
-        B = torch.unsqueeze(B, 0)
-        data = {'A': A, 'B': B, 'A_paths': path_A, 'B_paths': path_B}
-
-        os.chdir(origin_path)
-        model.set_input(data)
-        model.optimize(pair=True)
-
 # train
 total_steps = (start_epoch-1) * dataset_size + epoch_iter
 for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
     epoch_start_time = time.time()
     if epoch != start_epoch:
         epoch_iter = epoch_iter % dataset_size
+    # for paired data
+    if opt.need_match:
+        for i in range(0, len(list_A)):
+            os.chdir(path_A)
+            A = Image.open(list_A[i]).convert('RGB')
+            os.chdir(path_B)
+            B = Image.open(list_B[i]).convert('RGB')
+            A = transform(model.img_resize(A, opt.loadSize))
+            B = transform(model.img_resize(B, opt.loadSize))
+            A = torch.unsqueeze(A, 0)
+            B = torch.unsqueeze(B, 0)
+            data = {'A': A, 'B': B, 'A_paths': path_A, 'B_paths': path_B}
+    
+            os.chdir(origin_path)
+            model.set_input(data)
+            for j in range(0, 3):
+                model.optimize(pair=True)
+        
     # for unpaired data
     for i, data in enumerate(dataset, start=epoch_iter):
         iter_start_time = time.time()

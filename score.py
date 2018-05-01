@@ -24,7 +24,7 @@ print("[Test] test model: {}".format(expr_phase))
 
 
 command = '/root/workspace/ccc/anaconda3/bin/python {}'.format(test) + ' --dataroot {}'.format(opt.data_dir) +\
-          ' --phase test --loadSize 512  --netG_A global --netG_B global' +\
+          ' --phase test --loadSize 512 --ratio 1 --netG_A global --netG_B global' +\
           ' --ngf 32 --n_blocks_global 8 --n_downsample_global 2' +\
           ' --which_epoch {} --how_many {}'.format(opt.epoch, opt.howmany) + \
           ' --name {}'.format(opt.name)

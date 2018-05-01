@@ -58,6 +58,7 @@ class CycleGAN():
             # define loss function
             self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, tensor=self.Tensor)
             self.criterionCycle = torch.nn.L1Loss()
+            self.criterionL1 = torch.nn.L1Loss()
             # initialize optimizers
             self.optimizer_G = torch.optim.Adam(itertools.chain(self.netG_A.parameters(), self.netG_B.parameters()), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D_A = torch.optim.Adam(self.netD_A.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -180,20 +181,77 @@ class CycleGAN():
         loss_D_B.backward()
         self.loss_D_B = loss_D_B.data[0]
 
-    def optimize(self):
+    def backward_G_pair(self):
+        # GAN loss D_A(G_A(A))
+        fake_B = self.netG_A(self.real_A)
+        pred_fake = self.netD_A(fake_B)
+        loss_G_A = self.criterionGAN(pred_fake, True)
+        loss_G_A_L1 = self.criterionL1(fake_B, self.real_B) * self.opt.lambda_A
+
+        # GAN loss D_B(G_B(B))
+        fake_A = self.netG_B(self.real_B)
+        pred_fake = self.netD_B(fake_A)
+        loss_G_B = self.criterionGAN(pred_fake, True)
+        loss_G_B_L1 = self.criterionL1(fake_A, self.real_A) * self.opt.lambda_B
+
+        # total loss
+        loss_G = loss_G_A + loss_G_B + loss_G_A_L1 + loss_G_B_L1
+        loss_G.backward()
+
+        self.fake_B = fake_B.data
+        self.fake_A = fake_A.data
+
+    def backward_D_A_pair(self):
+        fake_B = Variable(self.fake_B).type(self.Tensor)
+        # how well it classifiers fake images
+        pred_fake = self.netD_A(fake_B.detach())
+        loss_D_fake = self.criterionGAN(pred_fake, False)
+
+        # how well it classifiers real images
+        pred_real = self.netD_A(self.real_B)
+        loss_D_real = self.criterionGAN(pred_real, True)
+
+        # total loss
+        loss_D_B = (loss_D_real + loss_D_fake) * 0.5
+        loss_D_B.backward()
+
+    def backward_D_B_pair(self):
+        fake_A = Variable(self.fake_A).type(self.Tensor)
+        # how well it classifiers fake images
+        pred_fake = self.netD_B(fake_A.detach())
+        loss_D_fake = self.criterionGAN(pred_fake, False)
+
+        # how well it classifiers real images
+        pred_real = self.netD_B(self.real_A)
+        loss_D_real = self.criterionGAN(pred_real, True)
+
+        # total loss
+        loss_D_B = (loss_D_real + loss_D_fake) * 0.5
+        loss_D_B.backward()
+
+    def optimize(self, pair=False):
         # forward
         self.forward()
         # G_A and G_B
         self.optimizer_G.zero_grad()
-        self.backward_G()
+        if pair==True:
+            self.backward_G_pair()
+        else:
+            self.backward_G()
         self.optimizer_G.step()
         # D_A
         self.optimizer_D_A.zero_grad()
-        self.backward_D_A()
+        if pair==True:
+            self.backward_D_A_pair()
+        else:
+            self.backward_D_A()
         self.optimizer_D_A.step()
         # D_B
         self.optimizer_D_B.zero_grad()
-        self.backward_D_B()
+        if pair==True:
+            self.backward_D_B_pair()
+        else:
+            self.backward_D_B()
         self.optimizer_D_B.step()
 
     def get_current_loss(self):
