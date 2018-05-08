@@ -1,0 +1,23 @@
+clc; clear;
+%% load images
+origin = imread('input.png');
+cyclegan_0 = imread('cyclegan_0.png');
+cyclegan_5 = imread('cyclegan_5.png');
+bayes_0 = imread('bayes_0.png');
+bayes_5 = imread('bayes_5.png');
+
+%% claculate GDL
+alpha = 1;
+origin = int16(origin);
+cyclegan_0 = int16(cyclegan_0);
+cyclegan_5 = int16(cyclegan_5);
+bayes_0 = int16(bayes_0);
+bayes_5 = int16(bayes_5);
+origin_diff_row = abs(origin(2:129, 2:256, :) - origin(1:128, 2:256, :));
+origin_diff_column = abs(origin(2:129, 2:256, :) - origin(2:129, 1:255, :));
+cyclegan_0_diff_row = abs(cyclegan_0(2:129, 2:256, :) - cyclegan_0(1:128, 2:256, :));
+cyclegan_0_diff_column = abs(cyclegan_0(2:129, 2:256, :) - cyclegan_0(2:129, 1:255, :));
+cyclegan_5_diff_row = abs(cyclegan_5(2:129, 2:256, :) - cyclegan_5(1:128, 2:256, :));
+cyclegan_5_diff_column = abs(cyclegan_5(2:129, 2:256, :) - cyclegan_5(2:129, 1:255, :));
+cyclegan_0_diff_row = abs(cyclegan_0(2:129, 2:256, :) - cyclegan_0(1:128, 2:256, :));
+cyclegan_0_diff_column = abs(cyclegan_0(2:129, 2:256, :) - cyclegan_0(2:129, 1:255, :));
