@@ -96,6 +96,9 @@ class CycleGAN():
         self.origin_path = os.getcwd()
         self.path_A = self.opt.dataroot + '/trainA'
         self.path_B = self.opt.dataroot + '/trainB'
+        if self.opt.use_feat:
+            self.path_A = self.opt.dataroot + '/feat'
+            self.path_B = self.opt.dataroot + '/feat'
         self.list_A = os.listdir(self.path_A)
         self.list_B = os.listdir(self.path_B)
 
@@ -183,10 +186,16 @@ class CycleGAN():
         if self.opt.input_nc == 1:  # RGB to gray
             z_x = z_x[0, ...] * 0.299 + z_x[1, ...] * 0.587 + z_x[2, ...] * 0.114
             z_x = z_x.unsqueeze(0)
+        if self.opt.use_feat:
+            z_x = z_x[0, ...] * 0.299 + z_x[1, ...] * 0.587 + z_x[2, ...] * 0.114
+            z_x = z_x.unsqueeze(0)
         z_x = Variable(z_x).type(self.Tensor)
         z_x = torch.unsqueeze(z_x, 0)
 
-        mu_x, logvar_x, feat_map_zx = self.netE_A.forward(z_x)
+        if not self.opt.use_feat:
+            mu_x, logvar_x, feat_map_zx = self.netE_A.forward(z_x)
+        else:
+            feat_map_zx = z_x
 
         os.chdir(self.path_B)
         mc_sample_y = random.sample(self.list_B, 1)
@@ -196,10 +205,16 @@ class CycleGAN():
         if self.opt.output_nc == 1:  # RGB to gray
             z_y = z_y[0, ...] * 0.299 + z_y[1, ...] * 0.587 + z_y[2, ...] * 0.114
             z_y = z_y.unsqueeze(0)
+        if self.opt.use_feat:
+            z_y = z_y[0, ...] * 0.299 + z_y[1, ...] * 0.587 + z_y[2, ...] * 0.114
+            z_y = z_y.unsqueeze(0)
         z_y = Variable(z_y).type(self.Tensor)
         z_y = torch.unsqueeze(z_y, 0)
-        
-        mu_y, logvar_y, feat_map_zy = self.netE_B.forward(z_y)
+
+        if not self.opt.use_feat:
+            mu_y, logvar_y, feat_map_zy = self.netE_B.forward(z_y)
+        else:
+            feat_map_zy = z_y
 
         os.chdir(self.origin_path)
 
