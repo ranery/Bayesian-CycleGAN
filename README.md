@@ -38,6 +38,7 @@ As we discuss before, the crutial options, like `--gamma`, take control over our
 
 #### Cityscapes
 * training scripts for cityscapes
+
 ````
 # for cityscapes (256x512) using bayes model with noise margalization.
 python train_bayes_z.py --dataroot ~/data/cityscapes --name cityscapes_bayes_L1_lsgan_noise --batchSize 1 --loadSize 256 --ratio 2 --netG_A global --netG_B global --ngf 32 --num_D_A 1 --num_D_B 1 --mc_x 3 --mc_y 3 --n_blocks_global 6 --n_downsample_global 2 --niter 50 --niter_decay 50 --gamma 0 --lambda_kl 0.1
@@ -46,18 +47,21 @@ python train_bayes_z.py --dataroot ~/data/cityscapes --name cityscapes_bayes_L1_
 If you want to use bayes model with encoder margalization, you only need to change `train_bayes_z.py` to `train_bayes.py`. By the same token, you can set `--gamma` to 0.5 if you want use L1 loss combined with GANLoss in the recycled learning.
 
 * continue train
+
 If your machine encounters some questions and stops work, you may need revive machanism to help you. In our train scripts, you should change the `start_epoch` and `epoch_iter` to that cut point and continue train by adding the following clause to the command:
 ````
 --continue_train --which_epoch latest
 ````
 
 * testing scripts for cityscapes
+
 ````
 python test_bayes_z.py --dataroot ~/data/cityscapes --name cityscapes_bayes_L1_lsgan --phase test --loadSize 256 --ratio 2 --netG_A global --netG_B global --ngf 32 --n_blocks_global 6 --n_downsample_global 2 --which_epoch latest --how_many 500
 ````
 You can choose which model to use by reset the option `--which_epoch`.
 
 * result display
+
 Final qualitative results samples for Bayesian CycleGAN model in unsupervised setting under condition gamma = 0
 ![](./img/cityscapes.PNG)
 FID and Inception score
@@ -73,6 +77,7 @@ The results are figured as:
 
 #### Monet2Photo
 Art mapping is a kind of image style transfer, This dataset is crawled from Wikiart.org and Flickr by Junyan Zhu et all., which contains 1074 Monet artwork and 6853 Photographs. Interestingly, if we use the encoder network to get the statistic feature map, that can be substituated by other features to generate different outputs.
+
 In our implementation, we use option `--use_feat` in inference procedure to let us change statistic feature map to any other pictures stored at `/dataroot/feat`. The results illustrated as follow:
 ![](./img/monet2photo.PNG)
  
