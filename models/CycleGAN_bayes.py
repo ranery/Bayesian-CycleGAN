@@ -96,9 +96,10 @@ class CycleGAN():
         self.origin_path = os.getcwd()
         self.path_A = self.opt.dataroot + '/trainA'
         self.path_B = self.opt.dataroot + '/trainB'
-        if self.opt.use_feat:
-            self.path_A = self.opt.dataroot + '/feat'
-            self.path_B = self.opt.dataroot + '/feat'
+        if not self.opt.isTrain:
+            if self.opt.use_feat:
+                self.path_A = self.opt.dataroot + '/feat'
+                self.path_B = self.opt.dataroot + '/feat'
         self.list_A = os.listdir(self.path_A)
         self.list_B = os.listdir(self.path_B)
 
@@ -289,31 +290,41 @@ class CycleGAN():
 
         # Forward cycle loss
         fake_B_next = []
-        for i in range(0, self.opt.mc_y):
-            _fake = fake_B[i*self.opt.batchSize:(i+1)*self.opt.batchSize]
-            _fake = torch.cat((_fake, self.feat_map_zx), dim=1)
-            fake_B_next.append(_fake)
+        for i in range(0, fake_B.size(0)):
+        	_fake = fake_B[i:(i+1)]
+        	_fake = torch.cat((_fake, self.feat_map_zx), dim=1)
+        	fake_B_next.append(_fake)
+            # _fake = fake_B[i*self.opt.batchSize:(i+1)*self.opt.batchSize]
+            # feat_map_zx = []
+            # for i in range(0, self.opt.batchSize):
+            #     feat_map_zx.append(self.feat_map_zx)
+            # feat_map_zx = torch.cat(feat_map_zx)
         fake_B_next = torch.cat(fake_B_next)
 
         rec_A = self.netG_B(fake_B_next)
         loss_cycle_A = 0
         for i in range(0, self.opt.mc_y):
-            loss_cycle_A += self.criterionCycle(rec_A[i*self.opt.batchSize:(i+1)*self.opt.batchSize], self.real_A) * lambda_A
+            loss_cycle_A += self.criterionCycle(rec_A[i*self.real_A.size(0):(i+1)*self.real_A.size(0)], self.real_A) * lambda_A
         pred_cycle_G_A = self.netD_B(rec_A)
         loss_cycle_G_A = self.criterionGAN(pred_cycle_G_A, True)
 
         # Backward cycle loss
         fake_A_next = []
-        for i in range(0, self.opt.mc_x):
-            _fake = fake_A[i*self.opt.batchSize:(i+1)*self.opt.batchSize]
-            _fake = torch.cat((_fake, self.feat_map_zy), dim=1)
-            fake_A_next.append(_fake)
+        for i in range(0, fake_A.size(0)):
+        	_fake = fake_A[i:(i+1)]
+        	_fake = torch.cat((_fake, self.feat_map_zy), dim=1)
+        	fake_A_next.append(_fake)
+            # _fake = fake_A[i*self.opt.batchSize:(i+1)*self.opt.batchSize]
+            # feat_map_zy = []
+            # for i in range(0, self.opt.batchSize):
+            #     feat_map_zy.append(self.feat_map_zy)
+            # feat_map_zy = torch.cat(feat_map_zy)
         fake_A_next = torch.cat(fake_A_next)
 
         rec_B = self.netG_A(fake_A_next)
         loss_cycle_B = 0
         for i in range(0, self.opt.mc_x):
-            loss_cycle_B += self.criterionCycle(rec_B[i*self.opt.batchSize:(i+1)*self.opt.batchSize], self.real_B) * lambda_B
+            loss_cycle_B += self.criterionCycle(rec_B[i*self.real_B.size(0):(i+1)*self.real_B.size(0)], self.real_B) * lambda_B
         pred_cycle_G_B = self.netD_A(rec_B)
         loss_cycle_G_B = self.criterionGAN(pred_cycle_G_B, True)
 
