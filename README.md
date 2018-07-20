@@ -63,7 +63,7 @@ Final qualitative results samples for Bayesian CycleGAN model in unsupervised se
 FID and Inception score
 ![](./img/cityscapes_fid_inception.PNG)
 FID and Inception score for recycled learning
-![](./img/cityscapes_rec_fid_incecption.PNG)
+![](./img/cityscapes_rec_fid_inception.PNG)
 
 #### Maps
 The training command are similar with cityscapes, but you should notice that the figures' size of Maps are resized to 256x256, consequently, `--ratio` should be 1.
