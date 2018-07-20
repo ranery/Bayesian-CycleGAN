@@ -58,23 +58,23 @@ python test_bayes_z.py --dataroot ~/data/cityscapes --name cityscapes_bayes_L1_l
 You can choose which model to use by reset the option `--which_epoch`.
 
 * result display
-![Final qualitative results samples for Bayesian CycleGAN model in unsupervised setting
-under condition gamma = 0](https://github.com/ranery/Bayesian-CycleGAN/tree/master/img/cityscapes.PNG)
-
-![FID and Inception score](https://github.com/ranery/Bayesian-CycleGAN/tree/master/img/cityscapes_fid_inception.PNG)
-
-![FID and Inception score for recycled learning](https://github.com/ranery/Bayesian-CycleGAN/tree/master/img/cityscapes_rec_fid_incecption.PNG)
+Final qualitative results samples for Bayesian CycleGAN model in unsupervised setting under condition gamma = 0
+![](./img/cityscapes.PNG)
+FID and Inception score
+![](./img/cityscapes_fid_inception.PNG)
+FID and Inception score for recycled learning
+![](./img/cityscapes_rec_fid_incecption.PNG)
 
 #### Maps
 The training command are similar with cityscapes, but you should notice that the figures' size of Maps are resized to 256x256, consequently, `--ratio` should be 1.
 
 The results are figured as:
-![](https://github.com/ranery/Bayesian-CycleGAN/tree/master/img/maps.PNG)
+![](./img/maps.PNG)
 
 #### Monet2Photo
 Art mapping is a kind of image style transfer, This dataset is crawled from Wikiart.org and Flickr by Junyan Zhu et all., which contains 1074 Monet artwork and 6853 Photographs. Interestingly, if we use the encoder network to get the statistic feature map, that can be substituated by other features to generate different outputs.
 In our implementation, we use option `--use_feat` in inference procedure to let us change statistic feature map to any other pictures stored at `/dataroot/feat`. The results illustrated as follow:
-![](https://github.com/ranery/Bayesian-CycleGAN/tree/master/img/monet2photo.PNG)
+![](./img/monet2photo.PNG)
  
 #### Semi-supervised learning
 
