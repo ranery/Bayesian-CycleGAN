@@ -57,7 +57,7 @@ def define_G(input_nc, output_nc, ngf, netG, n_downsample_global=3, n_blocks_glo
 
 def define_D(input_nc, ndf, n_layers_D, norm='instance', use_sigmoid=False, num_D=1):
     norm_layer = get_norm_layer(norm_type=norm)
-    netD = MultiscaleDiscriminator(input_nc, ndf, n_layers_D, norm_layer, use_sigmoid, num_D)
+    netD = MultiscaleDiscriminator(input_nc, ndf, n_layers_D, norm_layer, use_sigmoid, num_D, use_dropout=False)
     netD.apply(weights_init_gaussian)
     return netD
 
@@ -301,13 +301,13 @@ class UnetSkipConnectionBlock(nn.Module):
 
 # Discriminator
 class MultiscaleDiscriminator(nn.Module):
-    def __init__(self, input_nc, ndf=64, n_layers=3, norm_layer=nn.BatchNorm2d, use_sigmoid=False, num_D=3):
+    def __init__(self, input_nc, ndf=64, n_layers=3, norm_layer=nn.BatchNorm2d, use_sigmoid=False, num_D=3, use_dropout=False):
         super(MultiscaleDiscriminator, self).__init__()
         self.num_D = num_D
         self.n_layers = n_layers
 
         for i in range(num_D):
-            netD = NLayerDiscriminator(input_nc, ndf, n_layers, norm_layer, use_sigmoid)
+            netD = NLayerDiscriminator(input_nc, ndf, n_layers, norm_layer, use_sigmoid, use_dropout)
             setattr(self, 'layer'+str(i), netD.model)
 
         self.downsample = nn.AvgPool2d(3, stride=2, padding=[1, 1], count_include_pad=False)
@@ -327,7 +327,7 @@ class MultiscaleDiscriminator(nn.Module):
         return result
 
 class NLayerDiscriminator(nn.Module):
-    def __init__(self, input_nc, ndf=64, n_layers=3, norm_layer=nn.BatchNorm2d, use_sigmoid=False):
+    def __init__(self, input_nc, ndf=64, n_layers=3, norm_layer=nn.BatchNorm2d, use_sigmoid=False, use_dropout=False):
         super(NLayerDiscriminator, self).__init__()
         self.n_layers = n_layers
 
@@ -359,6 +359,9 @@ class NLayerDiscriminator(nn.Module):
 
         if use_sigmoid:
             model += [nn.Sigmoid()]
+
+        if use_dropout:
+            model = model + [nn.Dropout(0.5)]
 
         self.model = nn.Sequential(*model)
 
