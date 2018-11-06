@@ -1,0 +1,1 @@
+python evaluate.py --cityscapes_dir ~/disk/Bayesian-CycleGAN/evaluate/eval_cityscapes/real_B --result_dir ~/disk/Bayesian-CycleGAN/evaluate/eval_cityscapes/fake_B
