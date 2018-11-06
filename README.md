@@ -81,7 +81,7 @@ python test_bayes_z.py --dataroot ~/data/cityscapes --name cityscapes_bayes_L1_l
 You can choose which model to use by reset the option `--which_epoch`.
 
 * Pre-trained model
-Our latest model are avaliable in [Google drive])(https://drive.google.com/open?id=1C4W3xJ8kiqtDVnMmflSsmlxsfv_BIVWH)
+Our latest model are avaliable in [Google drive](https://drive.google.com/open?id=1C4W3xJ8kiqtDVnMmflSsmlxsfv_BIVWH)
 
 * result display
 
