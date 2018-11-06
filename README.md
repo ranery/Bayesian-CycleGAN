@@ -85,16 +85,15 @@ You can choose which model to use by reset the option `--which_epoch`.
 Final qualitative results samples for Bayesian cyclic model in unsupervised setting under condition gamma = 0
 ![](./assets/cityscapes.PNG)
 FID and Inception score
-![](./assets/cityscapes_fid_inception.PNG)
+![](./assets/cityscapes_fid_inception.pdf)
 FID and Inception score for reconstructed learning
-![](./assets/cityscapes_rec_fid_inception.PNG)
+![](./assets/cityscapes_rec_fid_inception.pdf)
 
 #### Maps
 The training command are similar with cityscapes, but you should notice that the figures' size of Maps are resized to 256x256, consequently, `--ratio` should be 1.
 
 The results are figured as:
-![](./img/maps.PNG)
-<img src="assets/maps.png" align="left" width="800px">
+<img src="assets/maps.png" align="left" width="800px"/>
 
 #### Monet2Photo
 Art mapping is a kind of image style transfer, This dataset is crawled from Wikiart.org and Flickr by Junyan Zhu et all., which contains 1074 Monet artwork and 6853 Photographs. Interestingly, if we use the encoder network to get the statistic feature map, that can be substituated by other features to generate different outputs.
