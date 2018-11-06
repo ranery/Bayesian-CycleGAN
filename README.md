@@ -4,9 +4,9 @@ This is the PyTorch implementation for Bayesian Cyclegan.
 
 ## Introduction
 
-Recent techniques built on Generative Adversarial Networks (GANs) like CycleGAN are able to learn mappings between domains from unpaired datasets through min-max optimization games between generators and discriminators. However, it remains challenging to stabilize the training process and diversify generated results. To address these problems, we present the non-trivial Bayesian extension of cyclic model and an integrated cyclic framework for inter-domain mappings.
+Recent techniques built on Generative Adversarial Networks (GANs) like [CycleGAN](https://arxiv.org/abs/1703.10593) are able to learn mappings between domains from unpaired datasets through min-max optimization games between generators and discriminators. However, it remains challenging to stabilize the training process and diversify generated results. To address these problems, we present the non-trivial Bayesian extension of cyclic model and an integrated cyclic framework for inter-domain mappings.
 
-The proposed method stimulated by Bayesian GAN [Bayesian GAN](https://arxiv.org/abs/1705.09558) and [CycleGAN](https://arxiv.org/abs/1703.10593) explores the full posteriors of Bayesian cyclic model (with latent sampling) and optimizes the model with maximum a posteriori (MAP) estimation. By exploring the full posteriors over model parameters, the Bayesian marginalization could alleviate the risk of model collapse and boost multimodal distribution learning. Besides, we deploy a combination of L1 loss and GANLoss between reconstructed images and source images to enhance the reconstructed learning, we also prove that this variation has a global optimality theoretically and show its effectiveness in experiments.
+The proposed method stimulated by Bayesian GAN [Bayesian GAN](https://arxiv.org/abs/1705.09558) explores the full posteriors of Bayesian cyclic model (with latent sampling) and optimizes the model with maximum a posteriori (MAP) estimation. By exploring the full posteriors over model parameters, the Bayesian marginalization could alleviate the risk of model collapse and boost multimodal distribution learning. Besides, we deploy a combination of L1 loss and GANLoss between reconstructed images and source images to enhance the reconstructed learning, we also prove that this variation has a global optimality theoretically and show its effectiveness in experiments.
 
 ## Prerequisites
 The code has the following dependencies:
@@ -83,18 +83,18 @@ You can choose which model to use by reset the option `--which_epoch`.
 * result display
 
 Final qualitative results samples for Bayesian cyclic model in unsupervised setting under condition gamma = 0
-![](./img/cityscapes.PNG)
+![](./assets/cityscapes.PNG)
 FID and Inception score
-![](./img/cityscapes_fid_inception.PNG)
+![](./assets/cityscapes_fid_inception.PNG)
 FID and Inception score for reconstructed learning
-![](./img/cityscapes_rec_fid_inception.PNG)
+![](./assets/cityscapes_rec_fid_inception.PNG)
 
 #### Maps
 The training command are similar with cityscapes, but you should notice that the figures' size of Maps are resized to 256x256, consequently, `--ratio` should be 1.
 
 The results are figured as:
 ![](./img/maps.PNG)
-<img src="assets/maps.png" align="left" width="10cm">
+<img src="assets/maps.png" align="left" width="800px">
 
 #### Monet2Photo
 Art mapping is a kind of image style transfer, This dataset is crawled from Wikiart.org and Flickr by Junyan Zhu et all., which contains 1074 Monet artwork and 6853 Photographs. Interestingly, if we use the encoder network to get the statistic feature map, that can be substituated by other features to generate different outputs.
