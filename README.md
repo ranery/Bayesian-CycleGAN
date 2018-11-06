@@ -89,7 +89,8 @@ Our latest model are avaliable in [Google drive])(https://drive.google.com/open?
 ![](./assets/cityscapes.PNG)
 
 - Comparison about model stability: When `gamma = 0.5`, our method maintain stable convergence while the original one collapses to one distribution for photo2label task.
-<img src="assets/cityscapes_compare.png" width="400px"/>
+
+<img src="assets/cityscapes_compare.png" align="center" width="400px"/>
 
 - FID and Inception score
 ![](./assets/cityscapes_fid_inception.png)
@@ -98,17 +99,16 @@ Our latest model are avaliable in [Google drive])(https://drive.google.com/open?
 ![](./assets/cityscapes_rec_fid_inception.png)
 
 #### Maps
-The training command are similar with cityscapes, but you should notice that the figures' size of Maps are resized to 256x256, consequently, `--ratio` should be 1.
+The training command are similar with cityscapes, but you should notice that the figures' size of Maps are resized to 256x256, consequently, `--ratio` should be 1. The results are illustrated as:
 
-The results are figured as:
-<img src="assets/maps.png" width="500px"/>
+<img src="assets/maps.png" align="center" width="600px"/>
 
 #### Monet2Photo
 Art mapping is a kind of image style transfer, This dataset is crawled from Wikiart.org and Flickr by Junyan Zhu et all., which contains 1074 Monet artwork and 6853 Photographs. Interestingly, if we imposed restriction on latent space by using the encoder network to generate statistic feature map, Bayesian cyclic model could generate diversified images by replacing SFM with other features in inference process.
 
 In our implementation, we use option `--use_feat` in inference procedure to let us change statistic feature map to any other pictures stored at `/dataroot/feat`. The results illustrated as follow:
 
-<img src="assets/monet2photo.PNG" width="400px" />
+<img src="assets/monet2photo.PNG" align="center" width="400px" />
 
 #### Semi-supervised learning
 
@@ -118,7 +118,7 @@ In cases where paired data is accessible, we can lever-age the condition to trai
 
 - FID and Inception score
 
-<img src="assets/cityscape_semi_fid_inception.png"/>
+![](./assets/cityscape_semi_fid_inception.png)
 
 ## Acknowledgement
 Code is inspired by [CycleGAN](https://github.com/junyanz/CycleGAN).
