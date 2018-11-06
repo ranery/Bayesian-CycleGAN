@@ -83,11 +83,11 @@ You can choose which model to use by reset the option `--which_epoch`.
 * result display
 
 Final qualitative results samples for Bayesian cyclic model in unsupervised setting under condition gamma = 0
-![](./assets/cityscapes.PNG)
+![](./assets/cityscapes.png)
 FID and Inception score
-![](./assets/cityscapes_fid_inception.pdf)
+![](./assets/cityscapes_fid_inception.png)
 FID and Inception score for reconstructed learning
-![](./assets/cityscapes_rec_fid_inception.pdf)
+![](./assets/cityscapes_rec_fid_inception.png)
 
 #### Maps
 The training command are similar with cityscapes, but you should notice that the figures' size of Maps are resized to 256x256, consequently, `--ratio` should be 1.
