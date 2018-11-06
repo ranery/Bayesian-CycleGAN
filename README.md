@@ -4,7 +4,9 @@ This is the PyTorch implementation for Bayesian Cyclegan.
 
 ## Introduction
 
-The new approach combines the key ideas in both [Bayesian GAN](https://arxiv.org/abs/1705.09558) and [CycleGAN](https://arxiv.org/abs/1703.10593). We present a Bayesian extension based on CycleGAN and a pratical realization framework for learning inter-domain mappings, the proposed framework explores the full posteriors over parameters optimizing with Maximum a posteriori estimation (MAP), and marginalize these posteriors through Monte Carlo. By exploring the full posteriors over model parameters, the Bayesian marginalization could alleviate the risk of model collapse and boost multimodal distribution learning. Besides, we deploy a combination of L1 loss and GANLoss between the recycled input and the original input to enhance the recycled learning, we also prove that this variation has a global optimality theoretically and show its effectiveness in experiments.
+Recent techniques built on Generative Adversarial Networks (GANs) like CycleGAN are able to learn mappings between domains from unpaired datasets through min-max optimization games between generators and discriminators. However, it remains challenging to stabilize the training process and diversify generated results. To address these problems, we present the non-trivial Bayesian extension of cyclic model and an integrated cyclic framework for inter-domain mappings.
+
+The proposed method stimulated by Bayesian GAN [Bayesian GAN](https://arxiv.org/abs/1705.09558) and [CycleGAN](https://arxiv.org/abs/1703.10593) explores the full posteriors of Bayesian cyclic model (with latent sampling) and optimizes the model with maximum a posteriori (MAP) estimation. By exploring the full posteriors over model parameters, the Bayesian marginalization could alleviate the risk of model collapse and boost multimodal distribution learning. Besides, we deploy a combination of L1 loss and GANLoss between reconstructed images and source images to enhance the reconstructed learning, we also prove that this variation has a global optimality theoretically and show its effectiveness in experiments.
 
 ## Prerequisites
 The code has the following dependencies:
@@ -22,8 +24,27 @@ pip install visdom
 pip install dominate
 ````
 
-## Training option
+## Core training and testing options
 
+### Training options
+- `gamma`: balance factor that adjust l1-GAN loss
+- `niter`: number of epoches with starting learning rate
+- `niter_decay`： number of epoches with non-linearly decay learning rate to zero periodically
+- `beta1`: momentum term of adam
+- `lr`: initial learning rate for adam
+- `no_lsgan`: do not use least square GAN if it is active
+- `lambda_A`: weight for cycle loss (A -> B -> A)
+- `lambda_B`: weight for cycle loss (B -> A -> B)
+- `lambda_kl`: weight for KL loss
+- `mc_y`: Mento Carlo samples for generate zy
+- `mc_x`: Mento Carlo samples for generate zx
+
+### Testing options
+- `which_epoch`: use which model to test
+- `use_feat`: if true, replace SFM to other latent variables in inference process
+- `how_many`: how many test images to run
+
+The crutial options, like `--gamma`, take control over our model, which should be set carefully. We recommend batchSize set to 1 in order to get final results, we didn't have time to test other values that may lower FCN scores.
 
 ## Usage
 
@@ -31,16 +52,15 @@ pip install dominate
 
 1. Install the required dependencies
 2. Clone this repository
+3. Download corresponding datasets
 
 ### Unsupervised and Semi-supervised Learning on benchmark datasets
-
-As we discuss before, the crutial options, like `--gamma`, take control over our model, which should be set carefully. We recommend batchSize set to 1 in order to get final results, we didn't have time to test other values taht may cause lower score.
 
 #### Cityscapes
 * training scripts for cityscapes
 
 ````
-# for cityscapes (256x512) using bayes model with noise margalization.
+# for cityscapes (128 x 256) using Bayesian cyclic model with noise margalization.
 python train_bayes_z.py --dataroot ~/data/cityscapes --name cityscapes_bayes_L1_lsgan_noise --batchSize 1 --loadSize 256 --ratio 2 --netG_A global --netG_B global --ngf 32 --num_D_A 1 --num_D_B 1 --mc_x 3 --mc_y 3 --n_blocks_global 6 --n_downsample_global 2 --niter 50 --niter_decay 50 --gamma 0 --lambda_kl 0.1
 ````
 
@@ -62,11 +82,11 @@ You can choose which model to use by reset the option `--which_epoch`.
 
 * result display
 
-Final qualitative results samples for Bayesian CycleGAN model in unsupervised setting under condition gamma = 0
+Final qualitative results samples for Bayesian cyclic model in unsupervised setting under condition gamma = 0
 ![](./img/cityscapes.PNG)
 FID and Inception score
 ![](./img/cityscapes_fid_inception.PNG)
-FID and Inception score for recycled learning
+FID and Inception score for reconstructed learning
 ![](./img/cityscapes_rec_fid_inception.PNG)
 
 #### Maps
@@ -74,6 +94,7 @@ The training command are similar with cityscapes, but you should notice that the
 
 The results are figured as:
 ![](./img/maps.PNG)
+<img src="assets/maps.png" align="left" width="10cm">
 
 #### Monet2Photo
 Art mapping is a kind of image style transfer, This dataset is crawled from Wikiart.org and Flickr by Junyan Zhu et all., which contains 1074 Monet artwork and 6853 Photographs. Interestingly, if we use the encoder network to get the statistic feature map, that can be substituated by other features to generate different outputs.
