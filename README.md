@@ -80,27 +80,45 @@ python test_bayes_z.py --dataroot ~/data/cityscapes --name cityscapes_bayes_L1_l
 ````
 You can choose which model to use by reset the option `--which_epoch`.
 
+* Pre-trained model
+Our latest model are avaliable in [Google drive])(https://drive.google.com/open?id=1C4W3xJ8kiqtDVnMmflSsmlxsfv_BIVWH)
+
 * result display
 
-Final qualitative results samples for Bayesian cyclic model in unsupervised setting under condition gamma = 0
+- Final qualitative results samples for Bayesian cyclic model in unsupervised setting under condition gamma = 0
 ![](./assets/cityscapes.PNG)
-FID and Inception score
+
+- Comparison about model stability: When `gamma = 0.5`, our method maintain stable convergence while the original one collapses to one distribution for photo2label task.
+<img src="assets/cityscapes_compare.png" width="400px"/>
+
+- FID and Inception score
 ![](./assets/cityscapes_fid_inception.png)
-FID and Inception score for reconstructed learning
+
+- FID and Inception score for reconstructed learning
 ![](./assets/cityscapes_rec_fid_inception.png)
 
 #### Maps
 The training command are similar with cityscapes, but you should notice that the figures' size of Maps are resized to 256x256, consequently, `--ratio` should be 1.
 
 The results are figured as:
-<img src="assets/maps.png" width="800px"/>
+<img src="assets/maps.png" width="500px"/>
 
 #### Monet2Photo
-Art mapping is a kind of image style transfer, This dataset is crawled from Wikiart.org and Flickr by Junyan Zhu et all., which contains 1074 Monet artwork and 6853 Photographs. Interestingly, if we use the encoder network to get the statistic feature map, that can be substituated by other features to generate different outputs.
+Art mapping is a kind of image style transfer, This dataset is crawled from Wikiart.org and Flickr by Junyan Zhu et all., which contains 1074 Monet artwork and 6853 Photographs. Interestingly, if we imposed restriction on latent space by using the encoder network to generate statistic feature map, Bayesian cyclic model could generate diversified images by replacing SFM with other features in inference process.
 
 In our implementation, we use option `--use_feat` in inference procedure to let us change statistic feature map to any other pictures stored at `/dataroot/feat`. The results illustrated as follow:
-![](./img/monet2photo.PNG)
- 
+
+<img src="assets/monet2photo.PNG" width="400px" />
+
 #### Semi-supervised learning
 
+In cases where paired data is accessible, we can lever-age the condition to train our model in a semi-supervisedsetting. In the training process ofCityscapes, mapping errors often occur, for example, the Gaussian initial model cannot recognize trees, thus, trans-lating trees into something else due to the unsupervised set-ting. To resolve these ambiguities requires weak semanticsupervision, we can use 30 (around 1%) paired data (pictures of cityscape and corresponding label images) to initialize our model at the beginning for each epoch. 
 
+* Result display
+
+- FID and Inception score
+
+<img src="assets/cityscape_semi_fid_inception.png"/>
+
+## Acknowledgement
+Code is inspired by [CycleGAN](https://github.com/junyanz/CycleGAN).
