@@ -99,7 +99,7 @@ Our latest model are avaliable in [Google drive](https://drive.google.com/open?i
 ![](./assets/cityscapes_rec_fid_inception.png)
 
 #### Quantitative metrics: FCN scores
-In our experiment, we use Bayesian cyclic model with random noise marginalization for the first 100 epoches, and finetune the model with SFM latent sampling for the later 100 epoches. The results show that Bayesian version cyclic model outperform original one.
+In our experiment, we use Bayesian cyclic model with random noise marginalization for the first 100 epoches, and finetune the model with SFM latent sampling for the later 100 epoches. The results show that Bayesian version cyclic model outperform original one. Pre-trained models are available at [Google drive](https://drive.google.com/open?id=1m-9REP_JNYP_3AQ6fO1oVHcuoIcUAE0E)
 
 <table>
 	<tr>
