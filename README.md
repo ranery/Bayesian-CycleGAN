@@ -6,7 +6,7 @@ This is the PyTorch implementation for Bayesian Cyclegan.
 
 Recent techniques built on Generative Adversarial Networks (GANs) like [CycleGAN](https://arxiv.org/abs/1703.10593) are able to learn mappings between domains from unpaired datasets through min-max optimization games between generators and discriminators. However, it remains challenging to stabilize the training process and diversify generated results. To address these problems, we present the non-trivial Bayesian extension of cyclic model and an integrated cyclic framework for inter-domain mappings.
 
-The proposed method stimulated by Bayesian GAN [Bayesian GAN](https://arxiv.org/abs/1705.09558) explores the full posteriors of Bayesian cyclic model (with latent sampling) and optimizes the model with maximum a posteriori (MAP) estimation. By exploring the full posteriors over model parameters, the Bayesian marginalization could alleviate the risk of model collapse and boost multimodal distribution learning. Besides, we deploy a combination of L1 loss and GANLoss between reconstructed images and source images to enhance the reconstructed learning, we also prove that this variation has a global optimality theoretically and show its effectiveness in experiments.
+The proposed method stimulated by [Bayesian GAN](https://arxiv.org/abs/1705.09558) explores the full posteriors of Bayesian cyclic model (with latent sampling) and optimizes the model with maximum a posteriori (MAP) estimation. By exploring the full posteriors over model parameters, the Bayesian marginalization could alleviate the risk of model collapse and boost multimodal distribution learning. Besides, we deploy a combination of L1 loss and GANLoss between reconstructed images and source images to enhance the reconstructed learning, we also prove that this variation has a global optimality theoretically and show its effectiveness in experiments.
 
 ## Prerequisites
 The code has the following dependencies:
@@ -64,7 +64,7 @@ The crutial options, like `--gamma`, take control over our model, which should b
 python train_bayes_z.py --dataroot ~/data/cityscapes --name cityscapes_bayes_L1_lsgan_noise --batchSize 1 --loadSize 256 --ratio 2 --netG_A global --netG_B global --ngf 32 --num_D_A 1 --num_D_B 1 --mc_x 3 --mc_y 3 --n_blocks_global 6 --n_downsample_global 2 --niter 50 --niter_decay 50 --gamma 0 --lambda_kl 0.1
 ````
 
-If you want to use bayes model with encoder margalization, you only need to change `train_bayes_z.py` to `train_bayes.py`. By the same token, you can set `--gamma` to 0.5 if you want use L1 loss combined with GANLoss in the recycled learning.
+If you want to use Bayesian model with encoder margalization, you only need to change `train_bayes_z.py` to `train_bayes.py`. By the same token, you can set `--gamma` to 0.5 if you want use L1 loss combined with GANLoss in the recycled learning.
 
 * continue train
 
@@ -86,7 +86,7 @@ Our latest model are avaliable in [Google drive](https://drive.google.com/open?i
 
 #### result display
 
-- Final qualitative results samples for Bayesian cyclic model in unsupervised setting under condition gamma = 0
+- Final qualitative results samples for Bayesian cyclic model in unsupervised setting under condition `gamma = 0`
 ![](./assets/cityscapes.PNG)
 
 - Comparison about model stability: When `gamma = 0.5`, our method maintain stable convergence while the original one collapses to one distribution for photo2label task.
@@ -97,6 +97,42 @@ Our latest model are avaliable in [Google drive](https://drive.google.com/open?i
 
 - FID and Inception score for reconstructed learning
 ![](./assets/cityscapes_rec_fid_inception.png)
+
+- FCN scores
+In our experiment, we use Bayesian cyclic model with random noise marginalization for the first 100 epoches, and finetune the model with SFM latent sampling for the later 100 epoches. The results show that Bayesian version cyclic model outperform original one.
+
+<table>
+	<tr>
+		<th>Methods</th>
+		<th>Per-pixel acc.</th>
+		<th>Per-class acc.</th>
+		<th>Class IOU</th>
+	</tr>
+	<tr>
+		<th>CycleGAN (dropout)</th>
+		<th>0.56</th>
+		<th>0.18</th>
+		<th>0.12</th>
+	</tr>
+	<tr>
+		<th>CycleGAN (buffer)</th>
+		<th>0.58</th>
+		<th>0.22</th>
+		<th>0.16</th>
+	</tr>
+	<tr>
+		<th>Bayesian CycleGAN</th>
+		<th>0.73</th>
+		<th>0.27</th>
+		<th>0.20</th>
+	</tr>
+	<tr>
+		<th>Pix2pix (supervised)</th>
+		<th>0.85</th>
+		<th>0.40</th>
+		<th>0.32</th>
+	</tr>
+</table>
 
 #### Maps
 The training command are similar with cityscapes, but you should notice that the figures' size of Maps are resized to 256x256, consequently, `--ratio` should be 1. The results are illustrated as:
