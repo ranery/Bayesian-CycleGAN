@@ -84,7 +84,7 @@ You can choose which model to use by reset the option `--which_epoch`.
 
 Our latest model are avaliable in [Google drive](https://drive.google.com/open?id=1C4W3xJ8kiqtDVnMmflSsmlxsfv_BIVWH)
 
-#### result display
+#### Qualitative result display
 
 - Final qualitative results samples for Bayesian cyclic model in unsupervised setting under condition `gamma = 0`
 ![](./assets/cityscapes.PNG)
@@ -98,7 +98,7 @@ Our latest model are avaliable in [Google drive](https://drive.google.com/open?i
 - FID and Inception score for reconstructed learning
 ![](./assets/cityscapes_rec_fid_inception.png)
 
-- FCN scores
+#### Quantitative metrics: FCN scores
 In our experiment, we use Bayesian cyclic model with random noise marginalization for the first 100 epoches, and finetune the model with SFM latent sampling for the later 100 epoches. The results show that Bayesian version cyclic model outperform original one.
 
 <table>
