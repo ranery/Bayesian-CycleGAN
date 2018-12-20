@@ -1,6 +1,6 @@
 # Bayesian Cycle-consistent Adversarial Networks in PyTorch
 
-This is the PyTorch implementation for Bayesian Cyclegan.
+This is the PyTorch implementation for [Bayesian CycleGAN](https://arxiv.org/abs/1811.07465).
 
 ## Introduction
 

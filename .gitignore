@@ -97,7 +97,8 @@ ENV/
 # mkdocs documentation
 /site
 
-
+.idea
+.DS_Store
 test_result
 results
 *.out
