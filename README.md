@@ -1,4 +1,4 @@
-# Bayesian Cycle-consistent Adversarial Networks in PyTorch
+# Bayesian CycleGAN
 
 This is the PyTorch implementation for [***Bayesian Cycle-Consistent Generative Adversarial Networks via Marginalizing Latent Sampling***](https://ieeexplore.ieee.org/document/9186319) published on IEEE TNNLS.
 
@@ -173,7 +173,7 @@ In our implementation, we use option `--use_feat` in inference procedure to let 
     <img src="./assets/monet2photo.PNG" width = "600" alt="overlap"  />
 </div>
 
-### EXP4: Semi-supervised learning
+#### EXP4: Semi-supervised learning
 
 In cases where paired data is accessible, we can lever-age the condition to train our model in a semi-supervisedsetting. In the training process of Cityscapes, mapping errors often occur, for example, the Gaussian initial model cannot recognize trees, thus, trans-lating trees into something else due to the unsupervised set-ting. To resolve these ambiguities requires weak semanticsupervision, we can use 30 (around 1%) paired data (pictures of cityscape and corresponding label images) to initialize our model at the beginning for each epoch.
 
