@@ -1,6 +1,6 @@
 # Bayesian Cycle-consistent Adversarial Networks in PyTorch
 
-This is the PyTorch implementation for [Bayesian CycleGAN](https://arxiv.org/abs/1811.07465).
+This is the PyTorch implementation for [***Bayesian Cycle-Consistent Generative Adversarial Networks via Marginalizing Latent Sampling***](https://ieeexplore.ieee.org/document/9186319) published on IEEE TNNLS.
 
 ## Introduction
 
@@ -9,6 +9,7 @@ Recent techniques built on Generative Adversarial Networks (GANs) like [CycleGAN
 The proposed method stimulated by [Bayesian GAN](https://arxiv.org/abs/1705.09558) explores the full posteriors of Bayesian cyclic model (with latent sampling) and optimizes the model with maximum a posteriori (MAP) estimation. By exploring the full posteriors over model parameters, the Bayesian marginalization could alleviate the risk of model collapse and boost multimodal distribution learning. Besides, we deploy a combination of L1 loss and GANLoss between reconstructed images and source images to enhance the reconstructed learning, we also prove that this variation has a global optimality theoretically and show its effectiveness in experiments.
 
 ## Prerequisites
+
 The code has the following dependencies:
 
 - python 3.5
@@ -20,7 +21,7 @@ The code has the following dependencies:
 Install PyTorch and dependencies on linux please follow instructions at https://pytorch.org/.
 Install python libraries [visdom](https://github.com/facebookresearch/visdom) and [dominate](https://github.com/Knio/dominate).
 ````
-pip install visdom 
+pip install visdom
 pip install dominate
 ````
 
@@ -56,7 +57,7 @@ The crutial options, like `--gamma`, take control over our model, which should b
 
 ### Unsupervised and Semi-supervised Learning on benchmark datasets
 
-#### Cityscapes
+#### EXP1: Cityscapes
 * training scripts for cityscapes
 
 ````
@@ -84,24 +85,45 @@ You can choose which model to use by reset the option `--which_epoch`.
 
 Our latest model are avaliable in [Google drive](https://drive.google.com/open?id=1C4W3xJ8kiqtDVnMmflSsmlxsfv_BIVWH)
 
-#### Qualitative result display
+#### EXP1: Qualitative result display
 
 - Final qualitative results samples for Bayesian cyclic model in unsupervised setting under condition `gamma = 0`
-![](./assets/cityscapes.PNG)
+<!-- ![](./assets/cityscapes.PNG) -->
+<div align=center>
+    <img src="./assets/cityscapes.PNG" width = "500" alt="overlap"  />
+</div>
 
 - Comparison about model stability: When `gamma = 0.5`, our method maintain stable convergence while the original one collapses to one distribution for photo2label task.
-![](./assets/cityscapes_compare.png)
+<!-- ![](./assets/cityscapes_compare.png) -->
+<div align=center>
+    <img src="./assets/cityscapes_compare.png" width = "500" alt="overlap"  />
+</div>
 
 - FID and Inception score
 ![](./assets/cityscapes_fid_inception.png)
 
-- FID and Inception score for reconstructed learning
-![](./assets/cityscapes_rec_fid_inception.png)
+<!-- - FID and Inception score for reconstructed learning -->
+<!-- ![](./assets/cityscapes_rec_fid_inception.png) -->
+<!-- <div align=center>
+    <img src="./assets/cityscapes_rec_fid_inception.png" width = "500" alt="overlap"  />
+</div> -->
 
-#### Quantitative metrics: FCN scores
+
+#### EXP1: Quantitative metrics: FCN scores
 In our experiment, we use Bayesian cyclic model with random noise marginalization for the first 100 epoches, and finetune the model with SFM latent sampling for the later 100 epoches. The results show that Bayesian version cyclic model outperform original one. Pre-trained models are available at [Google drive](https://drive.google.com/open?id=1m-9REP_JNYP_3AQ6fO1oVHcuoIcUAE0E)
 
-<table>
+
+ <style>
+        table{
+        text-align: center;
+        }
+        td{
+        text-align: center;
+        }
+    </style>
+</head>
+
+<table border="1" width="50%">
 	<tr>
 		<th>Methods</th>
 		<th>Per-pixel acc.</th>
@@ -134,24 +156,45 @@ In our experiment, we use Bayesian cyclic model with random noise marginalizatio
 	</tr>
 </table>
 
-#### Maps
+#### EXP2: Maps
 The training command are similar with cityscapes, but you should notice that the figures' size of Maps are resized to 256x256, consequently, `--ratio` should be 1. The results are illustrated as:
-![](./assets/maps.png)
+<!-- ![](./assets/maps.png) -->
+<div align=center>
+    <img src="./assets/maps.png" width = "600" alt="overlap"  />
+</div>
 
-#### Monet2Photo
+#### EXP3: Monet2Photo
 Art mapping is a kind of image style transfer, This dataset is crawled from Wikiart.org and Flickr by Junyan Zhu et all., which contains 1074 Monet artwork and 6853 Photographs. Interestingly, if we imposed restriction on latent space by using the encoder network to generate statistic feature map, Bayesian cyclic model could generate diversified images by replacing SFM with other features in inference process.
 
 In our implementation, we use option `--use_feat` in inference procedure to let us change statistic feature map to any other pictures stored at `/dataroot/feat`. The results illustrated as follow:
 
-![](./assets/monet2photo.PNG)
+<!-- ![](./assets/monet2photo.PNG) -->
+<div align=center>
+    <img src="./assets/monet2photo.PNG" width = "600" alt="overlap"  />
+</div>
 
-#### Semi-supervised learning
+### EXP4: Semi-supervised learning
 
-In cases where paired data is accessible, we can lever-age the condition to train our model in a semi-supervisedsetting. In the training process ofCityscapes, mapping errors often occur, for example, the Gaussian initial model cannot recognize trees, thus, trans-lating trees into something else due to the unsupervised set-ting. To resolve these ambiguities requires weak semanticsupervision, we can use 30 (around 1%) paired data (pictures of cityscape and corresponding label images) to initialize our model at the beginning for each epoch. 
+In cases where paired data is accessible, we can lever-age the condition to train our model in a semi-supervisedsetting. In the training process of Cityscapes, mapping errors often occur, for example, the Gaussian initial model cannot recognize trees, thus, trans-lating trees into something else due to the unsupervised set-ting. To resolve these ambiguities requires weak semanticsupervision, we can use 30 (around 1%) paired data (pictures of cityscape and corresponding label images) to initialize our model at the beginning for each epoch.
 
 * FID and Inception score
 
 ![](./assets/cityscapes_semi_fid_inception.png)
+
+## Citation
+
+If you find this codebase inspiring for your research, please cite:
+````
+@ARTICLE{you2020bayesian,
+  author={H. {You} and Y. {Cheng} and T. {Cheng} and C. {Li} and P. {Zhou}},
+  journal={IEEE Transactions on Neural Networks and Learning Systems},
+  title={Bayesian Cycle-Consistent Generative Adversarial Networks via Marginalizing Latent Sampling},
+  year={2020},
+  pages={1-15},
+  doi={10.1109/TNNLS.2020.3017669},
+  ISSN={2162-2388},
+}
+````
 
 ## Acknowledgement
 Code is inspired by [CycleGAN](https://github.com/junyanz/CycleGAN).
